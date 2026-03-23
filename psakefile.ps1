@@ -18,7 +18,7 @@ Task Test {
 
 Task Document {
     $ModuleFile = Join-Path "$PSScriptRoot" "EdgeGrammar.psm1"
-    Import-Module $ModuleFile -Force
+    Import-Module $ModuleFile -Force -Global
     New-MarkdownHelp -Module EdgeGrammar -OutputFolder '.\Modules\Doc' -UseFullTypeName -Force
 }
 

@@ -5,7 +5,7 @@ online version:
 schema: 2.0.0
 ---
 
-# Get-MemoryContext
+# Sync-Skill
 
 ## SYNOPSIS
 {{ Fill in the Synopsis }}
@@ -13,8 +13,7 @@ schema: 2.0.0
 ## SYNTAX
 
 ```
-Get-MemoryContext [[-Entities] <EntityEnum[]>] [[-Count] <Int32>] [[-OutFile] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Sync-Skill [-SkillName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -31,49 +30,16 @@ PS C:\> {{ Add example code here }}
 
 ## PARAMETERS
 
-### -Count
-Max records per Entity.
-Default 500; max 10 000.
-
-```yaml
-Type: System.Int32
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 1
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Entities
-Entities to include.
-Loads all when omitted.
-
-```yaml
-Type: EdgeGrammar.Modules.Dto.EntityEnum[]
-Parameter Sets: (All)
-Aliases: Entity
-Accepted values: Architect, Gemini, Claude, Grok, GPT, Human, Self, System, Agent, Codex
-
-Required: False
-Position: 0
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -OutFile
-Optional file path - snapshot the context string to disk.
+### -SkillName
+Name of the skill directory under Modules/Skill/.
 
 ```yaml
 Type: System.String
 Parameter Sets: (All)
 Aliases:
 
-Required: False
-Position: 2
+Required: True
+Position: 0
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

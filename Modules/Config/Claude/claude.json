@@ -1,0 +1,27 @@
+{
+  "autoUpdates": false,
+  "verbose": true,
+  "copyFullResponse": true,
+  "projects": {
+    "{UserHome}/Develop/CMMCPower": {
+      "mcpServers": {
+        "desktopcommander": {
+          "type": "stdio",
+          "command": "pwsh",
+          "args": [ "-Command", "npx @wonderwhy-er/desktop-commander@latest" ],
+          "env": {}
+        }
+      }
+    },
+    "{UserHome}/Develop/EdgeGrammar": {
+      "mcpServers": {
+        "desktopcommander": {
+          "type": "stdio",
+          "command": "pwsh",
+          "args": [ "-Command", "npx @wonderwhy-er/desktop-commander@latest" ],
+          "env": {}
+        }
+      }
+    }
+  }
+}

@@ -18,12 +18,15 @@ Read the output. Use it to ground yourself in what has been built, what failed, 
 * When editing existing code at scale (10 or more functions), make changes incrementally and validate after each batch. Never mass-edit all functions at once.
 * When I reject an approach, do not try it again. Track rejected approaches in the conversation and move to a genuinely different solution.
 * After migrating or writing any **public** function, always add it to `Export-ModuleMember`. A function that is not exported is not done.
+
+Every module has **exactly one** `Export-ModuleMember` call — at the very bottom of the file. Never split exports across multiple calls. A function added between two existing `Export-ModuleMember` statements will be silently skipped.
 * After any migration or refactor, run each affected function to verify it executes without error. No task is complete without a passing smoke test.
 * Before running tests, first explore the repository for existing test files and patterns. Do not invent ad hoc “tests” by blindly invoking functions. Match the project’s established test framework and conventions.
 
 ## Security
 
 * Never echo secrets, credentials, API keys, or connection strings to the terminal. Mask them or refer to them only by variable name.
+* Never commit confidential or machine-specific information to the repository. This includes: usernames, home directory paths, hostnames, IP addresses, UUIDs, email addresses, or any value that identifies a specific person or machine. Use tokens (`{UserHome}`, `{ClaudeHome}`) that are resolved at runtime by the Config module.
 
 ## PowerShell Environment Rules
 

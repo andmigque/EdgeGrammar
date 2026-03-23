@@ -1,12 +1,42 @@
 Set-StrictMode -Version Latest
 
 function Out-Error {
+    <#
+    .SYNOPSIS
+    Throws a consistent module-load error for AgentMemory commands.
+
+    .DESCRIPTION
+    Used internally when a command cannot load the EdgeGrammar assembly with Add-Type.
+    The thrown error names the calling function so troubleshooting points to the failing command.
+
+    .EXAMPLE
+    PS> Out-Error -CallerName 'New-Memory'
+    Throws a formatted error that tells the caller to import EdgeGrammar.psm1 first.
+
+    .OUTPUTS
+    None. This helper always throws.
+    #>
     [CmdletBinding()]
     param([string]$CallerName)
     throw "$CallerName -> Could not Add-Type. Please Import-Module EdgeGrammar.psm1 and try again"
 }
 
 function New-AgentMemory {
+    <#
+    .SYNOPSIS
+    Creates an in-memory agent memory record.
+
+    .DESCRIPTION
+    Builds a new AgentMemoryDto with a GUID, current tick stamp, entity, work area,
+    and free-form notes. This function returns the DTO and does not save it to disk.
+
+    .EXAMPLE
+    PS> New-AgentMemory -Entity Claude -Work AgentMemory -Notes 'Documented the PlatyPS help blocks.'
+    Creates a new memory object for Claude working on the AgentMemory module.
+
+    .OUTPUTS
+    EdgeGrammar.Modules.Dto.AgentMemoryDto
+    #>
 
     [CmdletBinding()]
     param(
@@ -44,6 +74,21 @@ function New-AgentMemory {
 }
 
 function New-Edge {
+    <#
+    .SYNOPSIS
+    Creates an in-memory relationship between two entities.
+
+    .DESCRIPTION
+    Builds an EdgeDto that captures who initiated the relationship, who the target is,
+    how they are related, and which work domain the relationship applies to.
+
+    .EXAMPLE
+    PS> New-Edge -FromEntity Claude -ToEntity Architect -Relation Collaborates -Work AgentMemory
+    Creates a relationship object showing Claude collaborating with Architect on AgentMemory work.
+
+    .OUTPUTS
+    EdgeGrammar.Modules.Dto.EdgeDto
+    #>
     [CmdletBinding()]
     param(
         [Parameter(
@@ -97,6 +142,27 @@ function New-Edge {
     }
 }
 function Save-AgentMemory {
+    <#
+    .SYNOPSIS
+    Saves an agent memory record to the EdgeGrammar provider.
+
+    .DESCRIPTION
+    Writes a single AgentMemoryDto to the entity's folder under EdgeGrammar:\agentmemory.
+    The record is serialized as one compact JSON line in a tick-named file so records remain
+    naturally sortable by creation time.
+
+    .EXAMPLE
+    PS> $memory = New-AgentMemory -Entity Claude -Work AgentMemory -Notes 'Saved a memory record.'
+    PS> $memory.Edge = New-Edge -FromEntity Claude -ToEntity Architect -Relation Collaborates -Work AgentMemory
+    PS> $memory | Save-AgentMemory
+    Saves the composed memory record and returns the created file name.
+
+    .INPUTS
+    EdgeGrammar.Modules.Dto.AgentMemoryDto
+
+    .OUTPUTS
+    System.String
+    #>
     [CmdletBinding()]
     param(
         [Parameter(
@@ -144,6 +210,27 @@ function Save-AgentMemory {
     }
 }
 function New-Memory {
+    <#
+    .SYNOPSIS
+    Creates a memory record and its relational edge in one step.
+
+    .DESCRIPTION
+    Composes a new AgentMemoryDto together with an EdgeDto that describes the relationship
+    for the same work item. Use -Save to persist the record immediately, or omit it to return
+    the assembled object for inspection or downstream piping.
+
+    .EXAMPLE
+    PS> New-Memory -Entity Claude -Work AgentMemory -ToEntity Architect -Relation Collaborates -Notes 'Prepared the documentation update.'
+    Returns a new in-memory record without saving it.
+
+    .EXAMPLE
+    PS> New-Memory -Save -Entity Claude -Work AgentMemory -ToEntity Architect -Relation Collaborates -Notes 'Prepared the documentation update.'
+    Creates the record and writes it to disk, returning the created file name.
+
+    .OUTPUTS
+    EdgeGrammar.Modules.Dto.AgentMemoryDto
+    System.String
+    #>
     [CmdletBinding()]
     param(
         [Parameter(
@@ -208,6 +295,21 @@ function New-Memory {
 }
 
 function Get-AgentMemory {
+    <#
+    .SYNOPSIS
+    Gets the most recent saved memory for each entity.
+
+    .DESCRIPTION
+    Scans the agent memory ledger, fans out across entity directories with thread jobs,
+    and returns the newest saved memory record found for each entity folder.
+
+    .EXAMPLE
+    PS> Get-AgentMemory
+    Returns the latest memory entry available for every entity that has saved records.
+
+    .OUTPUTS
+    EdgeGrammar.Modules.Dto.AgentMemoryDto
+    #>
     [CmdletBinding()]
     param()
 
@@ -239,6 +341,28 @@ function Get-AgentMemory {
 }
 
 function Get-MemoryByEntity {
+    <#
+    .SYNOPSIS
+    Gets recent memory records for a single entity.
+
+    .DESCRIPTION
+    Reads the newest saved memory files for the specified entity, deserializes each JSON payload,
+    and returns up to the requested count in newest-first order.
+
+    .EXAMPLE
+    PS> Get-MemoryByEntity -Entity Claude -Count 5
+    Returns the five most recent memory entries written by Claude.
+
+    .EXAMPLE
+    PS> [EdgeGrammar.Modules.Dto.EntityEnum]::Claude | Get-MemoryByEntity -Count 5
+    Demonstrates pipeline input when the entity value is already available as an enum.
+
+    .INPUTS
+    EdgeGrammar.Modules.Dto.EntityEnum
+
+    .OUTPUTS
+    System.Object
+    #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, HelpMessage = 'Which entity''s memories to retrieve.')]
@@ -277,7 +401,22 @@ function Get-MemoryByEntity {
     }
 }
 
-function Get-AgentMemoryWorkDistribution {
+function Get-MemoryWorkDistribution {
+    <#
+    .SYNOPSIS
+    Summarizes memory counts by work domain.
+
+    .DESCRIPTION
+    Loads recent memories across all entities, groups them by the Work field,
+    and sorts the grouped results by descending count.
+
+    .EXAMPLE
+    PS> Get-MemoryWorkDistribution | Select-Object -First 5
+    Returns the most common work domains currently represented in saved memories.
+
+    .OUTPUTS
+    Microsoft.PowerShell.Commands.GroupInfo
+    #>
     [CmdletBinding()]
     param()
 
@@ -290,6 +429,21 @@ function Get-AgentMemoryWorkDistribution {
 }
 
 function Measure-MemoryStatistic {
+    <#
+    .SYNOPSIS
+    Calculates note-length statistics for saved memories.
+
+    .DESCRIPTION
+    Loads recent memories across all entities, measures the total character length of each note set,
+    and returns aggregate statistics including mean, standard deviation, median, and percentiles.
+
+    .EXAMPLE
+    PS> Measure-MemoryStatistic
+    Returns a single object that summarizes memory note lengths across the ledger.
+
+    .OUTPUTS
+    System.Management.Automation.PSCustomObject
+    #>
     [CmdletBinding()]
     param()
 
@@ -313,6 +467,21 @@ function Measure-MemoryStatistic {
 }
 
 function Get-MemorySummary {
+    <#
+    .SYNOPSIS
+    Counts saved memories for each entity.
+
+    .DESCRIPTION
+    Iterates through every EntityEnum value, attempts to load recent memories for each one,
+    and returns a simple per-entity count summary.
+
+    .EXAMPLE
+    PS> Get-MemorySummary
+    Returns one summary record per entity with the total number of retrieved memories.
+
+    .OUTPUTS
+    System.Management.Automation.PSCustomObject
+    #>
     [CmdletBinding()]
     param()
 
@@ -328,6 +497,21 @@ function Get-MemorySummary {
 }
 
 function Measure-MemoryRelation {
+    <#
+    .SYNOPSIS
+    Summarizes saved memory edges by relation type.
+
+    .DESCRIPTION
+    Loads recent memories across all entities, extracts their Edge records,
+    groups them by Relation, and sorts the results by descending frequency.
+
+    .EXAMPLE
+    PS> Measure-MemoryRelation
+    Returns the most common relationship types found in saved memory edges.
+
+    .OUTPUTS
+    Microsoft.PowerShell.Commands.GroupInfo
+    #>
     [CmdletBinding()]
     param()
 
@@ -342,6 +526,26 @@ function Measure-MemoryRelation {
 }
 
 function Search-Memory {
+    <#
+    .SYNOPSIS
+    Searches memory notes for matching text.
+
+    .DESCRIPTION
+    Scans saved memory notes across one or more entities and returns only the records whose
+    note content matches the supplied pattern. Supports regex or literal matching, optional
+    case sensitivity, and additional filtering by work domain or edge relation.
+
+    .EXAMPLE
+    PS> Search-Memory -Pattern 'PlatyPS' -SimpleMatch
+    Finds memory records whose notes contain the literal text 'PlatyPS'.
+
+    .EXAMPLE
+    PS> Search-Memory -Pattern 'test|pester' -Entity Claude -Work AgentMemory
+    Searches Claude's AgentMemory entries with a regex pattern and returns the matching records.
+
+    .OUTPUTS
+    System.Management.Automation.PSCustomObject
+    #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, Position = 0, HelpMessage = 'Regex pattern (or literal string with -SimpleMatch) to search note content.')]
@@ -418,6 +622,26 @@ function Search-Memory {
 }
 
 function Get-MemoryContext {
+    <#
+    .SYNOPSIS
+    Renders recent memories as prompt-ready context text.
+
+    .DESCRIPTION
+    Loads recent memories for the requested entities, formats each memory as Markdown-style text,
+    and returns the rendered context. When -OutFile is provided, the same rendered context is also
+    written to disk for handoff or prompt bootstrapping.
+
+    .EXAMPLE
+    PS> Get-MemoryContext -Entities Claude, Architect -Count 5
+    Returns formatted context for the five most recent memories from Claude and Architect.
+
+    .EXAMPLE
+    PS> Get-MemoryContext -Count 10 -OutFile '.\memory-context.md'
+    Renders context for all entities, writes it to .\memory-context.md, and returns the same text.
+
+    .OUTPUTS
+    System.String
+    #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $false, HelpMessage = 'Entities to include. Loads all when omitted.')]
@@ -426,7 +650,7 @@ function Get-MemoryContext {
 
         [Parameter(Mandatory = $false, HelpMessage = 'Max records per Entity. Default 500; max 10 000.')]
         [ValidateRange(1, 10000)]
-        [int]$MaxPerEntity = 500,
+        [int]$Count = 500,
 
         [Parameter(Mandatory = $false, HelpMessage = 'Optional file path — snapshot the context string to disk.')]
         [string]$OutFile
@@ -438,7 +662,13 @@ function Get-MemoryContext {
         Out-Error -CallerName $MyInvocation.MyCommand.Name
     }
 
-    $memories = $Entities | Get-MemoryByEntity -Count $MaxPerEntity
+    $entitiesToLoad = if ($PSBoundParameters.ContainsKey('Entities') -and $Entities.Count -gt 0) {
+        $Entities
+    } else {
+        [EdgeGrammar.Modules.Dto.EntityEnum].GetEnumValues()
+    }
+
+    $memories = $entitiesToLoad | Get-MemoryByEntity -Count $Count
 
     $contexts = $memories.ForEach({
         $context = @"
@@ -455,6 +685,10 @@ $($_.Notes)
         $context
     })
 
+    if ($PSBoundParameters.ContainsKey('OutFile') -and -not [string]::IsNullOrWhiteSpace($OutFile)) {
+        Set-Content -Path $OutFile -Value $contexts -Encoding utf8
+    }
+
     $contexts
 }
 
@@ -462,7 +696,7 @@ Export-ModuleMember -Function `
     New-Memory, `
     Get-MemoryByEntity, `
     Get-MemoryContext, `
-    Get-AgentMemoryWorkDistribution, `
+    Get-MemoryWorkDistribution, `
     Measure-MemoryStatistic, `
     Get-MemorySummary, `
     Measure-MemoryRelation, `

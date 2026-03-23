@@ -1,12 +1,15 @@
 Set-StrictMode -Version Latest
 
-$Resolved = Resolve-Path "~"
-$EdgeGrammarDrive = Join-Path $Resolved "EdgeGrammar"
+$EdgeGrammarRoot = Join-Path (Convert-Path '~') 'EdgeGrammar'
 
-if(-not (Test-Path $EdgeGrammarDrive)){
-    New-PSDrive -Name EdgeGrammar -PSProvider FileSystem `
-        -Root $EdgeGrammarDrive -Description "A drive for storing edge grammar configurations, memories, and tools" `
-        -Scope Global
+if (-not (Test-Path $EdgeGrammarRoot)) {
+    New-Item -Path $EdgeGrammarRoot -ItemType Directory -Force | Out-Null
+}
+
+if (-not (Get-PSDrive -Name 'EdgeGrammar' -ErrorAction SilentlyContinue)) {
+    [void](New-PSDrive -Name 'EdgeGrammar' -PSProvider FileSystem -Root $EdgeGrammarRoot `
+        -Description 'A drive for storing edge grammar configurations, memories, and tools' `
+        -Scope Global)
 }
 $Global:EdgeGrammarDll = Join-Path -Path "$PSScriptRoot" -ChildPath 'bin\Debug\net9.0\EdgeGrammar.dll'
 

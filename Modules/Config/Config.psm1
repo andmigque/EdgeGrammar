@@ -101,4 +101,152 @@ function Sync-AgentConfig {
     }
 }
 
-Export-ModuleMember -Function Sync-AgentConfig
+function Sync-Skill {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, HelpMessage = 'Name of the skill directory under Modules/Skill/.')]
+        [string]$SkillName
+    )
+
+    try {
+        Add-Type -Path $Global:EdgeGrammarDll
+    }
+    catch {
+        Out-Error -CallerName $MyInvocation.MyCommand.Name
+    }
+
+    # Resolve source paths — walk up from Config/ to Modules/, then into Skill/
+    $modulesRoot      = Split-Path $PSScriptRoot -Parent
+    $skillSource      = Join-Path $modulesRoot 'Skill' $SkillName
+    $skillMd          = Join-Path $skillSource 'SKILL.md'
+    $agentMemorySrc   = Join-Path $modulesRoot 'AgentMemory'
+    $dtoSrc           = Join-Path $modulesRoot 'Dto'
+
+    if (-not (Test-Path $skillMd)) {
+        throw "Sync-Skill -> No SKILL.md found for '$SkillName' at: $skillMd"
+    }
+
+    # Resolve destination paths under ~/.claude/skills/<SkillName>/
+    $skillDest        = Join-Path $HOME '.claude' 'skills' $SkillName
+    $refDest          = Join-Path $skillDest 'references'
+    $agentMemoryDest  = Join-Path $refDest 'AgentMemory'
+    $dtoDest          = Join-Path $refDest 'Dto'
+
+    # 1. Ensure destination directories exist
+    foreach ($dir in @($skillDest, $agentMemoryDest, $dtoDest)) {
+        if (-not (Test-Path $dir)) {
+            [void](New-Item -Path $dir -ItemType Directory -Force)
+        }
+    }
+
+    # 2. Copy SKILL.md
+    Copy-Item -Path $skillMd -Destination $skillDest -Force
+    Write-Verbose "Copied SKILL.md -> $skillDest"
+
+    # 3. Copy AgentMemory module
+    Copy-Item -Path (Join-Path $agentMemorySrc '*') -Destination $agentMemoryDest -Force -Recurse
+    Write-Verbose "Copied AgentMemory -> $agentMemoryDest"
+
+    # 4. Copy Dto module
+    Copy-Item -Path (Join-Path $dtoSrc '*') -Destination $dtoDest -Force -Recurse
+    Write-Verbose "Copied Dto -> $dtoDest"
+
+    Write-Host "Synced skill '$SkillName' -> $skillDest" -ForegroundColor Green
+}
+
+function Sync-Profile {
+    [CmdletBinding()]
+    param()
+
+    try {
+        Add-Type -Path $Global:EdgeGrammarDll
+    }
+    catch {
+        Out-Error -CallerName $MyInvocation.MyCommand.Name
+    }
+
+    $profileSource = Join-Path $PSScriptRoot 'Windows-Profile.ps1'
+
+    if (-not (Test-Path $profileSource)) {
+        throw "Sync-Profile -> Source not found at: $profileSource"
+    }
+
+    $profileDir = Split-Path $PROFILE -Parent
+    if (-not (Test-Path $profileDir)) {
+        [void](New-Item -Path $profileDir -ItemType Directory -Force)
+    }
+
+    Copy-Item -Path $profileSource -Destination $PROFILE -Force
+    Write-Host "Synced profile -> $PROFILE" -ForegroundColor Green
+}
+
+function Sync-ClaudeJson {
+    [CmdletBinding()]
+    param()
+
+    try {
+        Add-Type -Path $Global:EdgeGrammarDll
+    }
+    catch {
+        Out-Error -CallerName $MyInvocation.MyCommand.Name
+    }
+
+    $sourceFile = Join-Path $PSScriptRoot 'Claude' 'claude.json'
+    $targetFile = Join-Path $HOME '.claude.json'
+
+    if (-not (Test-Path $sourceFile)) {
+        throw "Sync-ClaudeJson -> Canonical source not found at: $sourceFile"
+    }
+
+    # Resolve {UserHome} token before deserializing — keeps the source file machine-agnostic
+    $userHome       = (Convert-Path '~').Replace('\', '/')
+    $resolvedJson   = (Get-Content $sourceFile -Raw) -replace '\{UserHome\}', $userHome
+    $desired        = $resolvedJson | ConvertFrom-Json -Depth 10
+
+    # Read or scaffold the live file
+    if (Test-Path $targetFile) {
+        $live = Get-Content $targetFile -Raw | ConvertFrom-Json -Depth 10
+    }
+    else {
+        $live = [PSCustomObject]@{ projects = [PSCustomObject]@{} }
+    }
+
+    # 1. Top-level preferences — always apply from canonical source
+    foreach ($key in @('autoUpdates', 'verbose', 'copyFullResponse')) {
+        $live | Add-Member -NotePropertyName $key -NotePropertyValue $desired.$key -Force
+    }
+
+    # 2. MCP servers — merge per project, never remove existing entries
+    foreach ($projectPath in $desired.projects.PSObject.Properties.Name) {
+        $desiredServers = $desired.projects.$projectPath.mcpServers
+
+        # Scaffold the project entry if it doesn't exist yet
+        if (-not $live.projects.PSObject.Properties[$projectPath]) {
+            $live.projects | Add-Member -NotePropertyName $projectPath `
+                -NotePropertyValue ([PSCustomObject]@{ mcpServers = [PSCustomObject]@{} }) -Force
+        }
+
+        if (-not $live.projects.$projectPath.PSObject.Properties['mcpServers']) {
+            $live.projects.$projectPath | Add-Member -NotePropertyName 'mcpServers' `
+                -NotePropertyValue ([PSCustomObject]@{}) -Force
+        }
+
+        foreach ($serverName in $desiredServers.PSObject.Properties.Name) {
+            $live.projects.$projectPath.mcpServers | Add-Member `
+                -NotePropertyName $serverName `
+                -NotePropertyValue $desiredServers.$serverName `
+                -Force
+            Write-Verbose "Applied MCP server '$serverName' for project: $projectPath"
+        }
+    }
+
+    $live | ConvertTo-Json -Depth 10 | Set-Content -Path $targetFile -Encoding utf8
+    Write-Host "Synced claude.json -> $targetFile" -ForegroundColor Green
+}
+
+Export-ModuleMember -Function `
+    Sync-AgentConfig, `
+    Sync-Skill, `
+    Sync-Profile, `
+    Sync-ClaudeJson
+
