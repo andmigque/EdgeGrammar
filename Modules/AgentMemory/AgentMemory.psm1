@@ -238,37 +238,43 @@ function Get-AgentMemory {
     }
 }
 
-function Get-AgentMemoryByEntity {
+function Get-MemoryByEntity {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $false, HelpMessage = 'Which entity''s memories to retrieve.')]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, HelpMessage = 'Which entity''s memories to retrieve.')]
         [EdgeGrammar.Modules.Dto.EntityEnum]$Entity,
 
         [Parameter(Mandatory = $false, HelpMessage = 'How many recent entries you want back.')]
-        [int]$Count
+        [int]$Count = 10
     )
 
-    try { Add-Type -Path $Global:EdgeGrammarDll } catch { Out-Error -CallerName $MyInvocation.MyCommand.Name }
-
-    if ([string]::IsNullOrWhiteSpace($Entity.ToString()) -or -not $Count -or $Count -lt 1) {
-        throw "$($MyInvocation.MyCommand.Name) -> Entity and Count are required."
-    }
-
-    $limit = [Math]::Min($Count, 10000)
-
-    $entityPath = "EdgeGrammar:\agentmemory\$($Entity.ToString())"
-
-    if (-not (Test-Path $entityPath)) {
-        throw "$($MyInvocation.MyCommand.Name) -> $entityPath does not exist."
-    }
-
-    Get-ChildItem -Path $entityPath |
-        Sort-Object -Property LastWriteTime -Descending |
-        Select-Object -First $limit |
-        ForEach-Object {
-            Write-Verbose "Reading $($_.FullName)"
-            [EdgeGrammar.Modules.Dto.AgentMemoryDto](Get-Content -Path $_.FullName -Encoding utf8 | ConvertFrom-Json)
+    begin {
+        try {
+            Add-Type -Path $Global:EdgeGrammarDll
+        } catch {
+            Out-Error -CallerName $MyInvocation.MyCommand.Name
         }
+    }
+
+    process {
+        if ([string]::IsNullOrWhiteSpace($Entity.ToString()) -or -not $Count -or $Count -lt 1) {
+            throw "$($MyInvocation.MyCommand.Name) -> Entity and Count are required."
+        }
+
+        $limit      = [Math]::Min($Count, 10000)
+        $entityPath = Join-Path "EdgeGrammar:" "agentmemory" "$($Entity.ToString())"
+
+        if (-not (Test-Path $entityPath)) {
+            throw "$($MyInvocation.MyCommand.Name) -> $entityPath does not exist."
+        }
+
+        Get-ChildItem -Path $entityPath |
+            Sort-Object -Property LastWriteTime -Descending |
+            Select-Object -First $limit |
+            ForEach-Object {
+                Get-Content -Path $_.FullName -Encoding utf8 | ConvertFrom-Json -Depth 10
+            }
+    }
 }
 
 function Get-AgentMemoryWorkDistribution {
@@ -277,24 +283,20 @@ function Get-AgentMemoryWorkDistribution {
 
     try { Add-Type -Path $Global:EdgeGrammarDll } catch { Out-Error -CallerName $MyInvocation.MyCommand.Name }
 
-    $ErrorActionPreference = 'SilentlyContinue'
-
     [EdgeGrammar.Modules.Dto.EntityEnum].GetEnumValues() |
-        ForEach-Object { Get-AgentMemoryByEntity -Entity $_ -Count 1000 } |
+        ForEach-Object { try { Get-MemoryByEntity -Entity $_ -Count 1000 } catch { } } |
         Group-Object Work |
         Sort-Object Count -Descending
 }
 
-function Get-AgentMemoryNoteLengthStatistics {
+function Measure-MemoryStatistic {
     [CmdletBinding()]
     param()
 
     try { Add-Type -Path $Global:EdgeGrammarDll } catch { Out-Error -CallerName $MyInvocation.MyCommand.Name }
 
-    $ErrorActionPreference = 'SilentlyContinue'
-
     $lengths = [EdgeGrammar.Modules.Dto.EntityEnum].GetEnumValues() |
-        ForEach-Object { Get-AgentMemoryByEntity -Entity $_ -Count 1000 } |
+        ForEach-Object { try { Get-MemoryByEntity -Entity $_ -Count 1000 } catch { } } |
         ForEach-Object { ($_.Notes -join "`n").Length } |
         Sort-Object
 
@@ -310,39 +312,36 @@ function Get-AgentMemoryNoteLengthStatistics {
     }
 }
 
-function Get-AgentMemoryEntityActivitySummary {
+function Get-MemorySummary {
     [CmdletBinding()]
     param()
 
     try { Add-Type -Path $Global:EdgeGrammarDll } catch { Out-Error -CallerName $MyInvocation.MyCommand.Name }
 
-    $ErrorActionPreference = 'SilentlyContinue'
-
     [EdgeGrammar.Modules.Dto.EntityEnum].GetEnumValues() | ForEach-Object {
+        $memories = @(try { Get-MemoryByEntity -Entity $_ -Count 1000 } catch { })
         [PSCustomObject]@{
             Entity = $_
-            Count  = (Get-AgentMemoryByEntity -Entity $_ -Count 1000).Count
+            Count  = $memories.Count
         }
     }
 }
 
-function Get-AgentMemoryRelationTypeDistribution {
+function Measure-MemoryRelation {
     [CmdletBinding()]
     param()
 
     try { Add-Type -Path $Global:EdgeGrammarDll } catch { Out-Error -CallerName $MyInvocation.MyCommand.Name }
 
-    $ErrorActionPreference = 'SilentlyContinue'
-
     [EdgeGrammar.Modules.Dto.EntityEnum].GetEnumValues() |
-        ForEach-Object { Get-AgentMemoryByEntity -Entity $_ -Count 1000 } |
+        ForEach-Object { try { Get-MemoryByEntity -Entity $_ -Count 1000 } catch { } } |
         ForEach-Object { $_.Edge } |
         Where-Object { ${_}?.Relation } |
         Group-Object Relation |
         Sort-Object Count -Descending
 }
 
-function Search-AgentMemory {
+function Search-Memory {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, Position = 0, HelpMessage = 'Regex pattern (or literal string with -SimpleMatch) to search note content.')]
@@ -389,8 +388,7 @@ function Search-AgentMemory {
 
     $entitiesToSearch |
         ForEach-Object {
-            $ErrorActionPreference = 'SilentlyContinue'
-            Get-AgentMemoryByEntity -Entity $_ -Count $MaxPerEntity
+            try { Get-MemoryByEntity -Entity $_ -Count $MaxPerEntity } catch { }
         } |
         ForEach-Object {
             $memory = $_
@@ -419,11 +417,12 @@ function Search-AgentMemory {
         Sort-Object -Property TickStamp -Descending
 }
 
-function Get-AgentMemoryContext {
+function Get-MemoryContext {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $false, HelpMessage = 'Entities to include. Loads all when omitted.')]
-        [EdgeGrammar.Modules.Dto.EntityEnum[]]$Entity,
+        [Alias('Entity')]
+        [EdgeGrammar.Modules.Dto.EntityEnum[]]$Entities,
 
         [Parameter(Mandatory = $false, HelpMessage = 'Max records per Entity. Default 500; max 10 000.')]
         [ValidateRange(1, 10000)]
@@ -433,116 +432,38 @@ function Get-AgentMemoryContext {
         [string]$OutFile
     )
 
-    try { Add-Type -Path $Global:EdgeGrammarDll } catch { Out-Error -CallerName $MyInvocation.MyCommand.Name }
-
-    $entitiesToLoad = if ($PSBoundParameters.ContainsKey('Entity') -and $Entity.Count -gt 0) {
-        $Entity
-    } else {
-        [EdgeGrammar.Modules.Dto.EntityEnum].GetEnumValues()
+    try {
+        Add-Type -Path $Global:EdgeGrammarDll
+    } catch {
+        Out-Error -CallerName $MyInvocation.MyCommand.Name
     }
 
-    $entityEmoji = @{
-        Architect = '🏗️'
-        Claude    = '🧠'
-        Codex     = '🤖'
-        Self      = '🔮'
-        System    = '⚙️'
-        Agent     = '👻'
-    }
+    $memories = $Entities | Get-MemoryByEntity -Count $MaxPerEntity
 
-    $allByEntity = [ordered]@{}
-    $totalCount  = 0
+    $contexts = $memories.ForEach({
+        $context = @"
+# $($_.Entity)
 
-    foreach ($e in $entitiesToLoad) {
-        $ErrorActionPreference = 'SilentlyContinue'
-        $memories = @(Get-AgentMemoryByEntity -Entity $e -Count $MaxPerEntity)
+On $([EdgeGrammar.Modules.Unit.TickStampUnit]::new().ToUtcDateTime($_.TickStamp)).
+$($_.Entity) was working on $($_.Work) with $($_.Edge.ToEntity).
+Their relationship on this work was $($_.Edge.Relation).
+Here is what $($_.Entity) had to say about that day:
 
-        if ($memories.Count -gt 0) {
-            $allByEntity[$e.ToString()] = $memories
-            $totalCount += $memories.Count
-        }
-    }
+$($_.Notes)
 
-    $generated = [DateTimeOffset]::UtcNow.LocalDateTime.ToString('yyyy-MM-dd HH:mm')
+"@
+        $context
+    })
 
-    $lines = [System.Collections.Generic.List[string]]::new()
-
-    $lines.Add('# AgentMemory Context')
-    $lines.Add('')
-    $lines.Add('| Field | Value |')
-    $lines.Add('|---|---|')
-    $lines.Add("| Generated     | $generated |")
-    $lines.Add("| Entities      | $($allByEntity.Keys -join ', ') |")
-    $lines.Add("| Total Records | $totalCount |")
-    $lines.Add("| MaxPerEntity  | $MaxPerEntity |")
-    $lines.Add('| Est. Tokens   | calculating… |')
-    $lines.Add('')
-    $lines.Add('---')
-    $lines.Add('')
-
-    foreach ($entityName in $allByEntity.Keys) {
-        $memories = $allByEntity[$entityName]
-        $emoji    = if ($entityEmoji.ContainsKey($entityName)) { $entityEmoji[$entityName] } else { '•' }
-
-        $lines.Add("## $emoji $entityName ($($memories.Count) records)")
-        $lines.Add('')
-
-        $byWork = $memories | Group-Object Work | Sort-Object Count -Descending
-
-        foreach ($workGroup in $byWork) {
-            $lines.Add("### $($workGroup.Name) ($($workGroup.Count))")
-            $lines.Add('')
-
-            $workGroup.Group | Sort-Object TickStamp -Descending | ForEach-Object {
-                $memory  = $_
-                $dateStr = ([DateTimeOffset]::FromUnixTimeMilliseconds($memory.TickStamp)).LocalDateTime.ToString('yyyy-MM-dd HH:mm')
-
-                if ($memory.Notes.Count -eq 1) {
-                    $lines.Add("- **$dateStr** — $($memory.Notes[0])")
-                } else {
-                    $lines.Add("- **$dateStr**")
-                    foreach ($note in $memory.Notes) {
-                        $lines.Add("  - $note")
-                    }
-                }
-
-                $edge = $memory.Edge
-                if ($null -ne $edge) {
-                    $lines.Add("  - 🔗 ``$($edge.FromEntity)`` **$($edge.Relation)** ``$($edge.ToEntity)`` [$($edge.Work)]")
-                }
-            }
-
-            $lines.Add('')
-        }
-
-        $lines.Add('---')
-        $lines.Add('')
-    }
-
-    $context = $lines -join "`n"
-
-    $charCount     = $context.Length
-    $tokenEstimate = [math]::Round($charCount / 4)
-    $budgetPct     = [math]::Round($tokenEstimate / 1000000 * 100, 1)
-    $tokenLabel    = "~$tokenEstimate (~$budgetPct% of 1M budget)"
-
-    $context = $context.Replace('| Est. Tokens   | calculating… |', "| Est. Tokens   | $tokenLabel |")
-
-    if (-not [string]::IsNullOrWhiteSpace($OutFile)) {
-        $resolvedOut = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutFile)
-        Set-Content -Path $resolvedOut -Value $context -Encoding utf8 -Force
-        Write-Verbose "Context snapshot written to $resolvedOut ($charCount chars, $tokenEstimate est. tokens)"
-    }
-
-    return $context
+    $contexts
 }
 
 Export-ModuleMember -Function `
     New-Memory, `
-    Get-AgentMemoryByEntity, `
+    Get-MemoryByEntity, `
+    Get-MemoryContext, `
     Get-AgentMemoryWorkDistribution, `
-    Get-AgentMemoryNoteLengthStatistics, `
-    Get-AgentMemoryEntityActivitySummary, `
-    Get-AgentMemoryRelationTypeDistribution, `
-    Search-AgentMemory, `
-    Get-AgentMemoryContext
+    Measure-MemoryStatistic, `
+    Get-MemorySummary, `
+    Measure-MemoryRelation, `
+    Search-Memory

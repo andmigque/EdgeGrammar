@@ -34,7 +34,8 @@
 
     # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
     NestedModules     = @(
-        '.\Modules\AgentMemory\AgentMemory.psm1'
+        '.\Modules\AgentMemory\AgentMemory.psm1',
+        '.\Modules\Config\Config.psm1'
     )
 
     # Functions to export from this module

@@ -2,8 +2,12 @@ Set-StrictMode -Version Latest
 
 $Resolved = Resolve-Path "~"
 $EdgeGrammarDrive = Join-Path $Resolved "EdgeGrammar"
-New-PSDrive -Name EdgeGrammar -PSProvider FileSystem -Root $EdgeGrammarDrive -Description "A drive for storing edge grammar configurations, memories, and tools" -Scope Global
 
+if(-not (Test-Path $EdgeGrammarDrive)){
+    New-PSDrive -Name EdgeGrammar -PSProvider FileSystem `
+        -Root $EdgeGrammarDrive -Description "A drive for storing edge grammar configurations, memories, and tools" `
+        -Scope Global
+}
 $Global:EdgeGrammarDll = Join-Path -Path "$PSScriptRoot" -ChildPath 'bin\Debug\net9.0\EdgeGrammar.dll'
 
 # Load the EdgeGrammar assembly before importing nested modules so that

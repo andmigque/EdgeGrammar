@@ -1,0 +1,31 @@
+{
+  "entity": "Claude",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "command": "pwsh -NoProfile -File \"{ClaudeHome}\\Write-ToolUseLog.ps1\""
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "mcp__desktopcommander__read_file",
+      "mcp__desktopcommander__start_process",
+      "mcp__desktopcommander__list_directory",
+      "mcp__desktopcommander__read_process_output",
+      "mcp__desktopcommander__edit_block",
+      "mcp__desktopcommander__get_file_info",
+      "mcp__desktopcommander__start_search",
+      "mcp__desktopcommander__get_more_search_results",
+      "mcp__desktopcommander__read_multiple_files",
+      "mcp__desktopcommander__write_file",
+      "mcp__microsoft_learn__microsoft_docs_fetch"
+    ]
+  },
+  "plugins": [
+    "csharp-lsp@claude-plugins-official"
+  ],
+  "outputStyle": "Playful",
+  "effortLevel": "medium"
+}

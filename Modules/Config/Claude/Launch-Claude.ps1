@@ -1,0 +1,2 @@
+$systemPromptFile = Join-Path $PSScriptRoot "..\SYSTEM.md"
+claude --tools "WebFetch,WebSearch,TaskGet,TaskCreate,TaskUpdate,Task,TaskOutput,TaskList,ListMcpResourcesTool,ReadMcpResourcesTool" --system-prompt-file $systemPromptFile

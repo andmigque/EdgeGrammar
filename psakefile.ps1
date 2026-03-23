@@ -1,4 +1,4 @@
-Task default -Depends Install, Compile, Test, Document
+Task default -Depends Install, Compile, Test, Document, AnalyzeScript
 
 Task Install {
     $DataFile = Import-PowerShellDataFile -Path .\EdgeGrammar.psd1
@@ -19,5 +19,12 @@ Task Test {
 Task Document {
     $ModuleFile = Join-Path "$PSScriptRoot" "EdgeGrammar.psm1"
     Import-Module $ModuleFile -Force
-    New-MarkdownHelp -Module EdgeGrammar -OutputFolder '.\Doc' -UseFullTypeName -Force
+    New-MarkdownHelp -Module EdgeGrammar -OutputFolder '.\Modules\Doc' -UseFullTypeName -Force
+}
+
+Task AnalyzeScript {
+    Get-ChildItem -Recurse -Path $PSScriptRoot -File -Include *.ps1, *.psm1, *.psd1 | ForEach-Object {
+        Invoke-ScriptAnalyzer -IncludeDefaultRules -Path "$($_.FullName)" -ReportSummary
+    }
+
 }
