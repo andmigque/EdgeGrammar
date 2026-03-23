@@ -5,7 +5,7 @@
 On every session start, before doing anything else, run:
 
 ```powershell
-Get-MemoryContext -Entities Claude, Architect -MaxPerEntity 20
+Get-MemoryContext -Entities Claude, Architect -Count 20
 ```
 
 Read the output. Use it to ground yourself in what has been built, what failed, and what is still in progress. Do not ask the user to catch you up — the memory is there for exactly this purpose.
@@ -33,6 +33,44 @@ Every module has **exactly one** `Export-ModuleMember` call — at the very bott
 * The `AgentMemory` module is already imported in the shell. Never call `Import-Module`.
 * Never use `pwsh -NoProfile`. The profile is what imports the modules.
 * Always run PowerShell commands directly through Desktop Commander’s shell, not as a child `pwsh` process.
+
+## Desktop Commander Shell Configuration
+
+**MUST: Desktop Commander must use `pwsh.exe`, not `powershell.exe`.**
+
+If a shell command fails with an error resembling:
+
+```
+cannot be loaded because running scripts is disabled on this system
+```
+
+This is **not** an execution policy problem. Desktop Commander has reset its `defaultShell` back to `powershell.exe`. The fix is one tool call:
+
+```
+mcp__desktopcommander__set_config_value  key=defaultShell  value=pwsh.exe
+```
+
+Run that, then retry the command. Do not attempt to fix execution policy. Do not investigate further. Just reconfigure the shell.
+
+---
+
+## Desktop Commander Availability
+
+**MUST: If Desktop Commander MCP tools are not available, STOP immediately.**
+
+Desktop Commander is the required shell and file system interface for this project. It is not optional and cannot be substituted.
+
+When a Desktop Commander tool call fails with `No such tool available`:
+
+1. **Stop all work.** Do not attempt the task without it.
+2. **Do not launch agents** in an attempt to route around the missing tools. Agents have the same tool constraints — running them in circles wastes tokens and produces nothing.
+3. **Do not improvise alternatives.** No `WebFetch` workarounds. No inline reimplementations. No "let me try a different approach."
+4. **Tell the user clearly:** "Desktop Commander is not available. Stopping until the Architect restores it."
+5. **Wait.** The user will reconnect it via `/mcp`.
+
+This rule exists because the cost of spinning in circles is high and the fix is always simple: reconnect the MCP server.
+
+---
 
 ## Canonical PowerShell Patterns
 
@@ -209,7 +247,7 @@ ready to paste into a prompt or save to a file for session handoff.
 | Parameter       | Type           | Required | Default | Description                                |
 | --------------- | -------------- | -------- | ------- | ------------------------------------------ |
 | `-Entities`     | `EntityEnum[]` | No       | all     | Which entities to include; alias `-Entity` |
-| `-MaxPerEntity` | `int`          | No       | `500`   | Max records per entity (max `10000`)       |
+| `-Count` | `int`          | No       | `500`   | Max records per entity (max `10000`)       |
 | `-OutFile`      | `string`       | No       | —       | Path to write the context string to disk   |
 
 ```powershell
@@ -217,7 +255,7 @@ ready to paste into a prompt or save to a file for session handoff.
 Get-MemoryContext
 
 # Context for Claude only, last 20 records
-Get-MemoryContext -Entities Claude -MaxPerEntity 20
+Get-MemoryContext -Entities Claude -Count 20
 
 # Snapshot to file for session handoff
 Get-MemoryContext -Entities @('Claude', 'Architect', 'Gemini')
