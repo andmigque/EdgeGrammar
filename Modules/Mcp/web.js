@@ -115,7 +115,7 @@ const HTML = `<!DOCTYPE html>
     <div class="tabs" id="tabs">
       ${ENTITIES.map((e, i) => `<button class="tab${i === 0 ? " active" : ""}" data-entity="${e}">${e}</button>`).join("\n      ")}
     </div>
-    ${ENTITIES.map((e, i) => `<div class="panel${i === 0 ? " active" : ""}" id="panel-${e}"><div class="count" id="count-${e}"></div><div id="feed-${e}"></div></div>`).join("\n    ")}
+    <div class="panel active" id="panel-combined"><div class="count" id="combined-count"></div><div id="combined-feed"></div></div>
   </div>
   <div class="right">
     <div id="stats" style="background:#141414;border:1px solid #333;padding:1rem;margin-bottom:1rem;font-size:.75rem">
@@ -235,10 +235,19 @@ http.createServer((req, res) => {
   }
 
   if (req.method === "GET" && url.pathname === "/api/memories") {
-    const entity = url.searchParams.get("entity") ?? "Claude";
-    const count  = parseInt(url.searchParams.get("count") ?? "20", 10);
+    const entityParam = url.searchParams.get("entity") ?? "Claude";
+    const entities = entityParam.split(",");
+    const count = parseInt(url.searchParams.get("count") ?? "20", 10);
+    
+    let allMemories = [];
+    for (const entity of entities) {
+      allMemories.push(...getMemories(entity, count));
+    }
+    
+    allMemories.sort((a, b) => b.TickStamp - a.TickStamp);
+    
     res.writeHead(200, { "Content-Type": "application/json" });
-    return res.end(JSON.stringify(getMemories(entity, count)));
+    return res.end(JSON.stringify(allMemories.slice(0, count)));
   }
 
   if (req.method === "POST" && url.pathname === "/api/memories") {
