@@ -24,7 +24,6 @@
     ]
   },
   "plugins": [
-    "csharp-lsp@claude-plugins-official"
   ],
   "outputStyle": "Playful",
   "effortLevel": "medium"

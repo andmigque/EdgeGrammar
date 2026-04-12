@@ -20,4 +20,4 @@ $contextOutput
 Set-Content -Path "$($HOME)\.claude\DYNAMIC_SYSTEM_PROMPT.md" -Value $dynamicSystemPrompt -Force
 
 
-claude --tools "WebFetch,WebSearch,TaskGet,TaskCreate,TaskUpdate,Task,TaskOutput,TaskList,ListMcpResourcesTool,ReadMcpResourcesTool" --system-prompt-file "$($HOME)\.claude\DYNAMIC_SYSTEM_PROMPT.md"
+claude --system-prompt-file "$($HOME)\.claude\DYNAMIC_SYSTEM_PROMPT.md"

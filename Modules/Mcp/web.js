@@ -15,7 +15,7 @@ const VENDOR   = {
 
 const PORT        = 7070;
 const MEMORY_ROOT = path.join(os.homedir(), "EdgeGrammar", "agentmemory");
-const ENTITIES  = ["Architect","Gemini","Claude","Grok","GPT","Human","Self","System","Agent","Codex"];
+const ENTITIES  = ["Architect","Gemini","Claude","Grok","GPT","Human","Self","System","Agent","Codex","Qwen"];
 const WORKS     = ["PowerNixxServer","SystemPrompt","Npm","Pester","Devops","Infrastructure","DataPlane","ModelContextProtocol","Security","Reactor","MarkdownChat","AgentMemory","Research","Plan","Fragment","Frontend","Troubleshoot","GloriousFailure","CMMC"];
 const RELATIONS = ["Depends","Creates","Tests","Refactors","Throws","Runs","Guides","Learns","Configures","Interrupts","Thinks","Delivers","Reviews","Documents","Implements","Fixes","Observes","Analyzes","Designs","Encourages","Requests","Reports","Credits","Evolves","Understands","Thanks","Accepts","Imagines","Decodes","Collaborates","Questions","Plans","Grows","Transcends","Reflects","Realizes","Integrates","Delegates","Proposes","Researches"];
 
@@ -118,6 +118,10 @@ const HTML = `<!DOCTYPE html>
     ${ENTITIES.map((e, i) => `<div class="panel${i === 0 ? " active" : ""}" id="panel-${e}"><div class="count" id="count-${e}"></div><div id="feed-${e}"></div></div>`).join("\n    ")}
   </div>
   <div class="right">
+    <div id="stats" style="background:#141414;border:1px solid #333;padding:1rem;margin-bottom:1rem;font-size:.75rem">
+      <h2 style="color:#7fba00;margin-bottom:.5rem;font-size:.85rem">Relation Pulse</h2>
+      <div id="stats-feed" style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem"></div>
+    </div>
     <form id="form">
       <h2>new_memory</h2>
       <div class="selects">
@@ -189,6 +193,16 @@ document.getElementById('form').addEventListener('submit', async e => {
   }
 });
 
+async function loadStats() {
+  const r = await fetch('/api/stats/relations');
+  const data = await r.json();
+  document.getElementById('stats-feed').innerHTML = data
+    .slice(0, 10)
+    .map(s => '<div><span style="color:#7fba00">' + s[1] + '</span> ' + s[0] + '</div>')
+    .join('');
+}
+
+loadStats();
 ENTITIES.forEach(load);
 </script>
 </body>
@@ -206,6 +220,18 @@ http.createServer((req, res) => {
   if (req.method === "GET" && url.pathname === "/") {
     res.writeHead(200, { "Content-Type": "text/html" });
     return res.end(HTML);
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/stats/relations") {
+    const stats = {};
+    for (const entity of ENTITIES) {
+      const memories = getMemories(entity, 1000);
+      for (const m of memories) {
+        if (m.Edge?.Relation) stats[m.Edge.Relation] = (stats[m.Edge.Relation] || 0) + 1;
+      }
+    }
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify(Object.entries(stats).sort((a,b) => b[1] - a[1])));
   }
 
   if (req.method === "GET" && url.pathname === "/api/memories") {
