@@ -62,7 +62,7 @@ const HTML = `<!DOCTYPE html>
 <script src="/vendor/easymde.min.js"></script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:monospace;background:#646464;color:#ccc;padding:1.5rem}
+  body{font-family:monospace;background:#0d0d0d;color:#ccc;padding:1.5rem}
   h1{color:#7fba00;font-size:1.1rem;margin-bottom:1.2rem;letter-spacing:.05em}
   .layout{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start}
   .left{order:2;min-width:0}.right{order:1;min-width:0}
@@ -81,7 +81,9 @@ const HTML = `<!DOCTYPE html>
   .card-meta span{color:#888;margin-right:1rem}
   .card-notes{font-size:.82rem;color:#bbb;white-space:pre-wrap;line-height:1.5}
   .card-relation{font-size:.75rem;color:#666;margin-bottom:.5rem}
-  .card-relation span{color:#7fba00}
+  .card-relation span.relation{color:#7fba00}
+  .card-relation span.entity{color:#90c520}
+  .card-relation span.work{color:#a0d020}
   form{background:#141414;border:1px solid #333;padding:0.7rem;display:grid;gap:.7rem}
   @media(min-width:992px){form{position:sticky;top:1.5rem}}
   form h2{font-size:.85rem;color:#7fba00;margin-bottom:.4rem}
@@ -141,7 +143,7 @@ function renderCard(m) {
   ).toLocaleString();
   return \`<div class="card">
     <div class="card-meta"><span>\${date}</span></div>
-    <div class="card-relation">working on <span>\${m.Work}</span> with <span>\${m.Edge?.ToEntity ?? ''}</span> · <span>\${m.Edge?.Relation ?? ''}</span></div>
+    <div class="card-relation"><span class="relation">\${m.Edge?.Relation ?? ''}</span> <span class="entity">\${m.Edge?.ToEntity ?? ''}</span> by working on <span class="work">\${m.Work}</span></div>
     <div class="card-notes">\${escHtml(String(m.Notes))}</div>
   </div>\`;
 }
