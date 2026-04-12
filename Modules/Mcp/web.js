@@ -95,7 +95,8 @@ const HTML = `<!DOCTYPE html>
   #status{font-size:.78rem;color:#7fba00;min-height:1em}
   .count{font-size:.72rem;color:#555;margin-bottom:.6rem}
   .EasyMDEContainer{width:100%;max-width:100%;min-width:0}
-  .EasyMDEContainer .CodeMirror{background:#0d0d0d;color:#ccc;border:1px solid #333;font-family:monospace;font-size:.82rem;min-height:140px;width:100% !important;max-width:100%;min-width:0 !important}
+  .EasyMDEContainer .CodeMirror{background:#0d0d0d;color:#ccc;border:1px solid #333;font-family:monospace;font-size:.82rem;width:100% !important;max-width:100%;min-width:0 !important}
+  .EasyMDEContainer .CodeMirror-scroll{min-height:150px !important}
   .EasyMDEContainer .CodeMirror-focused{border-color:#7fba00}
   .editor-toolbar{background:#1a1a1a;border:1px solid #333;border-bottom:none}
   .editor-toolbar a,.editor-toolbar button{color:#888 !important;background:transparent}
@@ -107,7 +108,6 @@ const HTML = `<!DOCTYPE html>
 </style>
 </head>
 <body>
-<h1>EdgeGrammar / agentmemory</h1>
 <div class="layout">
   <div class="left">
     <div class="tabs" id="tabs">

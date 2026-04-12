@@ -29,7 +29,6 @@
         @{ ModuleName = 'platyPS'; RequiredVersion = '0.14.2' }
         @{ ModuleName = 'Pester'; RequiredVersion = '5.7.1' }
         @{ ModuleName = 'PSScriptAnalyzer'; RequiredVersion = '1.24.0' }
-        @{ ModuleName = 'Psake'; RequiredVersion = '4.9.1' }
     )
 
     # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
