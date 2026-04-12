@@ -8,7 +8,7 @@ import { createRequire } from "module";
 
 const require  = createRequire(import.meta.url);
 const EASYMDE  = path.dirname(require.resolve("easymde/dist/easymde.min.js"));
-const VENDOR   = { 
+const VENDOR   = {
   "/vendor/easymde.min.js":  { file: path.join(EASYMDE, "easymde.min.js"),  mime: "text/javascript" },
   "/vendor/easymde.min.css": { file: path.join(EASYMDE, "easymde.min.css"), mime: "text/css" },
 };
@@ -154,19 +154,36 @@ function renderCard(m) {
 
 function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 
-async function load(entity) {
-  const r = await fetch(\`/api/memories?entity=\${entity}&count=30\`);
+const selectedEntities = new Set(["Architect"]);
+
+async function loadCombined() {
+  const entityList = Array.from(selectedEntities).join(',');
+  if (!entityList) return;
+  const r = await fetch('/api/memories?entity=' + entityList + '&count=30');
   const data = await r.json();
-  document.getElementById(\`feed-\${entity}\`).innerHTML = data.map(renderCard).join('');
-  document.getElementById(\`count-\${entity}\`).textContent = \`\${data.length} records\`;
+  const feed = document.getElementById('combined-feed');
+  feed.innerHTML = data.map(renderCard).join('');
+  document.getElementById('combined-count').textContent = data.length + ' records';
 }
 
 document.getElementById('tabs').addEventListener('click', e => {
   if (!e.target.dataset.entity) return;
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  e.target.classList.add('active');
-  document.getElementById('panel-' + e.target.dataset.entity).classList.add('active');
+  const entity = e.target.dataset.entity;
+  if (e.ctrlKey || e.metaKey) {
+    if (selectedEntities.has(entity)) {
+      selectedEntities.delete(entity);
+      e.target.classList.remove('active');
+    } else {
+      selectedEntities.add(entity);
+      e.target.classList.add('active');
+    }
+  } else {
+    selectedEntities.clear();
+    selectedEntities.add(entity);
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    e.target.classList.add('active');
+  }
+  loadCombined();
 });
 
 const mde = new EasyMDE({
@@ -178,6 +195,7 @@ const mde = new EasyMDE({
   status: false,
 });
 
+
 document.getElementById('form').addEventListener('submit', async e => {
   e.preventDefault();
   const fd = new FormData(e.target);
@@ -187,7 +205,7 @@ document.getElementById('form').addEventListener('submit', async e => {
   if (r.ok) {
     document.getElementById('status').textContent = 'Saved.';
     mde.value('');
-    await load(body.entity);
+    await loadCombined();
   } else {
     document.getElementById('status').textContent = 'Error: ' + r.status;
   }
@@ -202,8 +220,10 @@ async function loadStats() {
     .join('');
 }
 
-loadStats();
-ENTITIES.forEach(load);
+document.addEventListener('DOMContentLoaded', () => {
+  loadStats();
+  loadCombined();
+});
 </script>
 </body>
 </html>`;
@@ -238,14 +258,14 @@ http.createServer((req, res) => {
     const entityParam = url.searchParams.get("entity") ?? "Claude";
     const entities = entityParam.split(",");
     const count = parseInt(url.searchParams.get("count") ?? "20", 10);
-    
+
     let allMemories = [];
     for (const entity of entities) {
       allMemories.push(...getMemories(entity, count));
     }
-    
+
     allMemories.sort((a, b) => b.TickStamp - a.TickStamp);
-    
+
     res.writeHead(200, { "Content-Type": "application/json" });
     return res.end(JSON.stringify(allMemories.slice(0, count)));
   }
