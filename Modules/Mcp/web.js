@@ -62,7 +62,7 @@ const HTML = `<!DOCTYPE html>
 <script src="/vendor/easymde.min.js"></script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:monospace;background:#0d0d0d;color:#ccc;padding:1.5rem}
+  body{font-family:monospace;background:#646464;color:#ccc;padding:1.5rem}
   h1{color:#7fba00;font-size:1.1rem;margin-bottom:1.2rem;letter-spacing:.05em}
   .layout{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start}
   .left{order:2;min-width:0}.right{order:1;min-width:0}
@@ -77,19 +77,19 @@ const HTML = `<!DOCTYPE html>
   .tab.active{border-color:#7fba00;color:#7fba00}
   .panel{display:none}.panel.active{display:block}
   .card{background:#141414;border:1px solid #222;padding:.9rem 1rem;margin-bottom:.7rem;border-radius:2px}
-  .card-meta{font-size:.72rem;color:#555;margin-bottom:.4rem}
+  .card-meta{font-family:sans-serif;font-size:.7rem;color:#666;margin-bottom:.4rem;text-transform:uppercase;letter-spacing:0.02em}
   .card-meta span{color:#888;margin-right:1rem}
   .card-notes{font-size:.82rem;color:#bbb;white-space:pre-wrap;line-height:1.5}
-  .card-edge{font-size:.72rem;color:#555;margin-top:.5rem}
-  .card-edge span{color:#7fba00}
-  form{background:#141414;border:1px solid #333;padding:1.2rem;display:grid;gap:.7rem}
+  .card-relation{font-size:.75rem;color:#666;margin-bottom:.5rem}
+  .card-relation span{color:#7fba00}
+  form{background:#141414;border:1px solid #333;padding:0.7rem;display:grid;gap:.7rem}
   @media(min-width:992px){form{position:sticky;top:1.5rem}}
   form h2{font-size:.85rem;color:#7fba00;margin-bottom:.4rem}
   .selects{display:flex;flex-wrap:wrap;gap:.5rem}
   .selects select{flex:1 1 120px;min-width:0;width:0}
   input,select,textarea{background:#0d0d0d;border:1px solid #333;color:#ccc;padding:.4rem .6rem;font:inherit;font-size:.82rem;width:100%;min-width:0;max-width:100%}
   textarea{resize:vertical;min-height:120px}
-  input:focus,select:focus,textarea:focus{outline:none;border-color:#7fba00}
+  input:focus,select:focus,textarea:focus{outline:none;border:1px solid #7fba00}
   button[type=submit]{background:#7fba00;color:#000;border:none;padding:.45rem 1.2rem;font:inherit;font-size:.85rem;cursor:pointer;width:100%}
   button[type=submit]:hover{background:#a0d020}
   #status{font-size:.78rem;color:#7fba00;min-height:1em}
@@ -99,7 +99,7 @@ const HTML = `<!DOCTYPE html>
   .EasyMDEContainer .CodeMirror-scroll{min-height:150px !important}
   .EasyMDEContainer .CodeMirror-focused{border-color:#7fba00}
   .editor-toolbar{background:#1a1a1a;border:1px solid #333;border-bottom:none}
-  .editor-toolbar a,.editor-toolbar button{color:#888 !important;background:transparent}
+  .editor-toolbar a,.editor-toolbar button{color:#fff !important;background:transparent}
   .editor-toolbar a:hover,.editor-toolbar a.active,.editor-toolbar button:hover,.editor-toolbar button.active{color:#7fba00 !important;background:#222}
   .editor-toolbar i.separator{border-color:#333}
   .CodeMirror-cursor{border-left:2px solid #ccc !important}
@@ -140,9 +140,9 @@ function renderCard(m) {
     - ${Number(DOTNET_EPOCH_OFFSET / 10000n)}
   ).toLocaleString();
   return \`<div class="card">
-    <div class="card-meta"><span>\${m.Work}</span><span>\${date}</span></div>
+    <div class="card-meta"><span>\${date}</span></div>
+    <div class="card-relation">working on <span>\${m.Work}</span> with <span>\${m.Edge?.ToEntity ?? ''}</span> · <span>\${m.Edge?.Relation ?? ''}</span></div>
     <div class="card-notes">\${escHtml(String(m.Notes))}</div>
-    <div class="card-edge">\${m.Entity} <span>\${m.Edge?.Relation ?? ''}</span> \${m.Edge?.ToEntity ?? ''}</div>
   </div>\`;
 }
 
