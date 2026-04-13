@@ -81,6 +81,12 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
         <label style="color:#888;cursor:pointer;display:flex;align-items:center">
           <input type="checkbox" id="hide-records" style="margin-right:0.3rem"> Hide
         </label>
+        <label style="color:#888;cursor:pointer;display:flex;align-items:center">
+          <input type="checkbox" id="show-graph" style="margin-right:0.3rem"> Graph
+        </label>
+      </div>
+      <div id="graph-panel" style="display:none;position:relative;width:100%;height:480px;background:#141414;border:1px solid #222;margin-bottom:.7rem;cursor:crosshair">
+        <svg id="graph-svg" style="width:100%;height:100%;display:block"></svg>
       </div>
       <div id="combined-feed"></div>
     </div>
@@ -215,6 +221,111 @@ async function loadCollab() {
   document.getElementById('collab-feed').innerHTML = data.map(renderCard).join('');
   document.getElementById('collab-count').textContent = data.length + ' records';
 }
+
+// ── Graph ──────────────────────────────────────────────────────────────────
+let graphHovered = null;
+let graphSelected = null;
+let graphCache = { entities: [], relations: [] };
+
+async function loadGraph() {
+  const r = await fetch('/api/memories?entity=' + ENTITIES.join(',') + '&count=500');
+  const memories = await r.json();
+  const entitySet = new Set();
+  const relMap = new Map();
+  for (const m of memories) {
+    const f = m.Edge && m.Edge.FromEntity;
+    const t = m.Edge && m.Edge.ToEntity;
+    const rel = m.Edge && m.Edge.Relation;
+    if (f) entitySet.add(f);
+    if (t) entitySet.add(t);
+    if (f && t && rel) {
+      const key = f + '|' + t + '|' + rel;
+      if (!relMap.has(key)) relMap.set(key, { from: f, to: t, type: rel });
+    }
+  }
+  graphCache.entities = Array.from(entitySet);
+  graphCache.relations = Array.from(relMap.values());
+  renderGraph();
+}
+
+function renderGraph() {
+  const panel = document.getElementById('graph-panel');
+  const svg = document.getElementById('graph-svg');
+  if (!panel || !svg || panel.style.display === 'none') return;
+  const W = panel.clientWidth || 700;
+  const H = panel.clientHeight || 480;
+  const cx = W / 2, cy = H / 2;
+  const radius = Math.min(W, H) * 0.38;
+  const ents = graphCache.entities;
+  const rels = graphCache.relations;
+  const active = graphHovered || graphSelected;
+  const pos = {};
+  ents.forEach(function(e, i) {
+    const angle = (i / ents.length) * 2 * Math.PI - Math.PI / 2;
+    pos[e] = { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
+  });
+  let h = '';
+  h += '<defs>';
+  h += '<marker id="arr" markerWidth="8" markerHeight="6" refX="20" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#333"/></marker>';
+  h += '<marker id="arr-a" markerWidth="8" markerHeight="6" refX="20" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#7fba00"/></marker>';
+  h += '</defs>';
+  for (let i = 0; i < rels.length; i++) {
+    const rel = rels[i];
+    const f = pos[rel.from], t = pos[rel.to];
+    if (!f || !t) continue;
+    const isAct = active && (rel.from === active || rel.to === active);
+    if (isAct) continue;
+    h += '<line x1="' + f.x.toFixed(1) + '" y1="' + f.y.toFixed(1) + '" x2="' + t.x.toFixed(1) + '" y2="' + t.y.toFixed(1) + '" stroke="#252525" stroke-width="1" marker-end="url(#arr)"/>';
+  }
+  for (let i = 0; i < rels.length; i++) {
+    const rel = rels[i];
+    const f = pos[rel.from], t = pos[rel.to];
+    if (!f || !t) continue;
+    if (!active || (rel.from !== active && rel.to !== active)) continue;
+    h += '<line x1="' + f.x.toFixed(1) + '" y1="' + f.y.toFixed(1) + '" x2="' + t.x.toFixed(1) + '" y2="' + t.y.toFixed(1) + '" stroke="#7fba00" stroke-width="2" stroke-opacity="0.75" marker-end="url(#arr-a)"/>';
+  }
+  for (let i = 0; i < ents.length; i++) {
+    const e = ents[i];
+    const p = pos[e];
+    if (!p) continue;
+    const isAct = e === active;
+    const fill = isAct ? '#7fba00' : '#2a2a2a';
+    const stroke = isAct ? '#a0d020' : '#444';
+    const cr = isAct ? 12 : 7;
+    const textY = (p.y + cr + 14).toFixed(1);
+    const fontSize = isAct ? '13' : '11';
+    const textFill = isAct ? '#fff' : '#999';
+    h += '<g class="gn" data-e="' + escHtml(e) + '" style="cursor:pointer">';
+    h += '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="' + cr + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="2"/>';
+    h += '<text x="' + p.x.toFixed(1) + '" y="' + textY + '" text-anchor="middle" fill="' + textFill + '" font-size="' + fontSize + '" font-family="monospace" font-weight="bold" pointer-events="none">' + escHtml(e) + '</text>';
+    h += '</g>';
+  }
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  svg.innerHTML = h;
+  svg.querySelectorAll('.gn').forEach(function(node) {
+    const entity = node.dataset.e;
+    node.addEventListener('mouseenter', function() { graphHovered = entity; renderGraph(); });
+    node.addEventListener('mouseleave', function() { graphHovered = null; renderGraph(); });
+    node.addEventListener('click', function(ev) { ev.stopPropagation(); graphSelected = graphSelected === entity ? null : entity; renderGraph(); });
+  });
+}
+
+document.getElementById('show-graph').addEventListener('change', async function(e) {
+  const panel = document.getElementById('graph-panel');
+  panel.style.display = e.target.checked ? 'block' : 'none';
+  if (e.target.checked) {
+    if (graphCache.entities.length === 0) {
+      await loadGraph();
+    } else {
+      renderGraph();
+    }
+  }
+});
+
+document.getElementById('graph-panel').addEventListener('click', function() {
+  graphSelected = null;
+  renderGraph();
+});
 
 document.addEventListener('DOMContentLoaded', () => {
   loadStats();

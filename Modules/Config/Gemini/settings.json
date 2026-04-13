@@ -1,0 +1,26 @@
+{
+  "security": {
+    "auth": {
+      "selectedType": "oauth-personal"
+    }
+  },
+  "general": {
+    "sessionRetention": {
+      "warningAcknowledged": true,
+      "enabled": true,
+      "maxAge": "120d"
+    },
+    "maxAttempts": 3
+  },
+  "model": {
+    "name": "gemini-3-flash-preview"
+  },
+  "ui": {
+    "hideTips": true,
+    "hideBanner": true,
+    "footer": {
+      "hideModelInfo": false
+    }
+  },
+  "hooks": {}
+}
