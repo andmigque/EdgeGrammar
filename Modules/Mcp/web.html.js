@@ -74,8 +74,13 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
       ${ENTITIES.map((e, i) => `<button class="tab${i === 0 ? " active" : ""}" data-entity="${e}">${e}</button>`).join("\n      ")}
     </div>
     <div class="panel active" id="panel-combined">
-      <div class="count">
-        Show: <input type="number" id="combined-limit" value="30" style="width:50px;padding:2px 4px;margin-bottom:0.5rem"> records
+      <div class="count" style="display:flex;align-items:center;gap:1rem">
+        <div>
+          Show: <input type="number" id="combined-limit" value="30" style="width:50px;padding:2px 4px"> records
+        </div>
+        <label style="color:#888;cursor:pointer;display:flex;align-items:center">
+          <input type="checkbox" id="hide-records" style="margin-right:0.3rem"> Hide
+        </label>
       </div>
       <div id="combined-feed"></div>
     </div>
@@ -141,6 +146,10 @@ async function loadCombined() {
   const feed = document.getElementById('combined-feed');
   feed.innerHTML = data.map(renderCard).join('');
 }
+
+document.getElementById('hide-records').addEventListener('change', e => {
+  document.getElementById('combined-feed').style.display = e.target.checked ? 'none' : 'block';
+});
 
 document.getElementById('combined-limit').addEventListener('change', loadCombined);
 
