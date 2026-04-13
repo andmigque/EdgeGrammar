@@ -222,11 +222,6 @@ http.createServer(async (req, res) => {
   }
 
   if (req.method === "POST" && url.pathname === "/api/chat") {
-    const { sid } = parseCookies(req);
-    if (!hasSession(sid)) {
-      res.writeHead(401, { "Content-Type": "text/plain" });
-      return res.end("Unauthorized");
-    }
     let body = "";
     req.on("data", d => body += d);
     req.on("end", async () => {

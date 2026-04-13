@@ -65,6 +65,7 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
   ::-webkit-scrollbar-thumb{background:#333;border-radius:4px}
   ::-webkit-scrollbar-thumb:hover{background:#7fba00}
   * {scrollbar-width:thin;scrollbar-color:#333 #0d0d0d}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 </style>
 </head>
 <body>
@@ -84,6 +85,9 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
         <label style="color:#888;cursor:pointer;display:flex;align-items:center">
           <input type="checkbox" id="show-graph" style="margin-right:0.3rem"> Graph
         </label>
+        <label style="color:#888;cursor:pointer;display:flex;align-items:center">
+          <input type="checkbox" id="show-chat" style="margin-right:0.3rem"> Chat
+        </label>
         <select id="filter-relation" style="background:#0d0d0d;border:1px solid #333;color:#888;padding:.25rem .5rem;font:inherit;font-size:.78rem;cursor:pointer">
           <option value="">— relation —</option>
           ${RELATIONS.map(r => `<option value="${r}">${r}</option>`).join("")}
@@ -91,6 +95,17 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
       </div>
       <div id="graph-panel" style="display:none;position:relative;width:100%;height:480px;background:#141414;border:1px solid #222;margin-bottom:.7rem;cursor:crosshair">
         <svg id="graph-svg" style="width:100%;height:100%;display:block"></svg>
+      </div>
+      <div id="chat-panel" style="display:none;background:#141414;border:1px solid #222;margin-bottom:.7rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem .75rem;border-bottom:1px solid #222">
+          <span style="color:#7fba00;font-size:.75rem;letter-spacing:.05em">GEMINI CHAT</span>
+          <button id="chat-clear" style="background:none;border:1px solid #333;color:#555;padding:.15rem .6rem;font:inherit;font-size:.72rem;cursor:pointer">clear</button>
+        </div>
+        <div id="chat-messages" style="height:340px;overflow-y:auto;padding:.75rem;display:flex;flex-direction:column;gap:.6rem"></div>
+        <div style="display:flex;gap:.5rem;padding:.5rem .75rem;border-top:1px solid #222">
+          <textarea id="chat-input" rows="1" placeholder="Message\u2026" style="flex:1;background:#0d0d0d;border:1px solid #333;color:#ccc;padding:.35rem .6rem;font:inherit;font-size:.82rem;resize:none;min-height:34px;max-height:120px;field-sizing:content"></textarea>
+          <button id="chat-send" style="background:#7fba00;color:#000;border:none;padding:.35rem .9rem;font:inherit;font-size:.82rem;cursor:pointer;align-self:flex-end">Send</button>
+        </div>
       </div>
       <div id="combined-feed"></div>
     </div>
@@ -333,6 +348,110 @@ document.getElementById('show-graph').addEventListener('change', async function(
 document.getElementById('graph-panel').addEventListener('click', function() {
   graphSelected = null;
   renderGraph();
+});
+
+// ── Chat ───────────────────────────────────────────────────────────────────
+let chatHistory = [];
+let chatStreaming = false;
+
+function chatEsc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function chatScrollBottom() {
+  const el = document.getElementById('chat-messages');
+  el.scrollTop = el.scrollHeight;
+}
+
+function chatAppend(role, text) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.style.cssText = 'max-width:85%;padding:.45rem .7rem;font-size:.82rem;white-space:pre-wrap;word-break:break-word;line-height:1.5;' +
+    (role === 'user'
+      ? 'align-self:flex-end;background:#1a1a1a;border:1px solid #333;color:#ccc;'
+      : 'align-self:flex-start;background:#111;border:1px solid #2a2a2a;color:#bbb;');
+  const content = document.createElement('span');
+  content.textContent = text;
+  div.appendChild(content);
+  msgs.appendChild(div);
+  chatScrollBottom();
+  return { div, content };
+}
+
+async function chatSend() {
+  const input = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('chat-send');
+  const text = input.value.trim();
+  if (!text || chatStreaming) return;
+  input.value = '';
+
+  chatAppend('user', text);
+  chatHistory.push({ role: 'user', content: text });
+
+  chatStreaming = true;
+  sendBtn.disabled = true;
+
+  const { div: msgDiv, content: contentSpan } = chatAppend('assistant', '');
+  const cursor = document.createElement('span');
+  cursor.style.cssText = 'display:inline-block;width:7px;height:.85em;background:#7fba00;animation:blink .8s steps(1) infinite;vertical-align:text-bottom;margin-left:2px';
+  msgDiv.appendChild(cursor);
+
+  let accumulated = '';
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, history: chatHistory.slice(0, -1) })
+    });
+    if (!res.ok) {
+      contentSpan.textContent = 'Error ' + res.status + ': ' + (await res.text());
+      msgDiv.style.borderColor = '#4a1a1a';
+    } else {
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split('\\n');
+        buf = lines.pop();
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const raw = line.slice(6).trim();
+          if (!raw || raw === '[DONE]') continue;
+          try {
+            const chunk = JSON.parse(raw).candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+            if (chunk) { accumulated += chunk; contentSpan.textContent = accumulated; chatScrollBottom(); }
+          } catch (_) {}
+        }
+      }
+    }
+  } catch (err) {
+    contentSpan.textContent = 'Network error: ' + err.message;
+    msgDiv.style.borderColor = '#4a1a1a';
+  }
+
+  cursor.remove();
+  if (accumulated) chatHistory.push({ role: 'model', content: accumulated });
+  chatStreaming = false;
+  sendBtn.disabled = false;
+}
+
+document.getElementById('show-chat').addEventListener('change', function(e) {
+  document.getElementById('chat-panel').style.display = e.target.checked ? 'flex' : 'none';
+  if (e.target.checked) document.getElementById('chat-input').focus();
+});
+
+document.getElementById('chat-panel').style.flexDirection = 'column';
+
+document.getElementById('chat-send').addEventListener('click', chatSend);
+
+document.getElementById('chat-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); chatSend(); }
+});
+
+document.getElementById('chat-clear').addEventListener('click', function() {
+  chatHistory = [];
+  document.getElementById('chat-messages').innerHTML = '';
 });
 
 document.addEventListener('DOMContentLoaded', () => {
