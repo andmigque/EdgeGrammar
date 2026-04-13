@@ -54,6 +54,8 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
   .tabs{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.2rem}
   .tab{background:#1a1a1a;border:1px solid #333;color:#888;padding:.35rem .9rem;cursor:pointer;font:inherit;font-size:.85rem}
   .tab.active{border-color:#7fba00;color:#7fba00}
+  .tab.collab-tab{border-color:#2a3a4a;color:#5a8aa0}
+  .tab.collab-tab.active{border-color:#61afef;color:#61afef}
   .panel{display:none}.panel.active{display:block}
   .card{background:#141414;border:1px solid #222;padding:.9rem 1rem;margin-bottom:.7rem;border-radius:2px}
   .card-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.4rem}
@@ -127,6 +129,7 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
   <div class="left">
     <div class="tabs" id="tabs">
       ${ENTITIES.map((e, i) => `<button class="tab${i === 0 ? " active" : ""}" data-entity="${e}">${e}</button>`).join("\n      ")}
+      <button class="tab collab-tab" data-entity="Collab">Collab</button>
     </div>
     <div class="panel active" id="panel-combined">
       <div class="count" style="display:flex;align-items:center;gap:1rem">
@@ -139,9 +142,6 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
         <label style="color:#888;cursor:pointer;display:flex;align-items:center">
           <input type="checkbox" id="show-graph" style="margin-right:0.3rem"> Graph
         </label>
-        <label style="color:#888;cursor:pointer;display:flex;align-items:center">
-          <input type="checkbox" id="show-chat" style="margin-right:0.3rem"> Chat
-        </label>
         <select id="filter-relation" style="background:#0d0d0d;border:1px solid #333;color:#888;padding:.25rem .5rem;font:inherit;font-size:.78rem;cursor:pointer">
           <option value="">— relation —</option>
           ${RELATIONS.map(r => `<option value="${r}">${r}</option>`).join("")}
@@ -152,25 +152,21 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
       <div id="graph-panel" style="display:none;position:relative;width:100%;height:480px;background:#141414;border:1px solid #222;margin-bottom:.7rem;cursor:crosshair">
         <svg id="graph-svg" style="width:100%;height:100%;display:block"></svg>
       </div>
-      <div id="chat-panel" style="display:none;flex-direction:column;background:#141414;border:1px solid #222;margin-bottom:.7rem">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem .75rem;border-bottom:1px solid #222;flex-shrink:0">
-          <span style="color:#7fba00;font-size:.75rem;letter-spacing:.05em">GEMINI CHAT</span>
-          <button id="chat-clear" style="background:none;border:1px solid #333;color:#555;padding:.15rem .6rem;font:inherit;font-size:.72rem;cursor:pointer">clear</button>
-        </div>
-        <div id="chat-messages" style="height:50vh;overflow-y:auto;padding:.75rem;display:flex;flex-direction:column;gap:.6rem"></div>
-        <div style="display:flex;gap:.5rem;padding:.5rem .75rem;border-top:1px solid #222;flex-shrink:0">
-          <textarea id="chat-input" rows="1" placeholder="Message\u2026" style="flex:1;background:#0d0d0d;border:1px solid #333;color:#ccc;padding:.35rem .6rem;font:inherit;font-size:.82rem;resize:none;min-height:34px;max-height:120px;field-sizing:content"></textarea>
-          <button id="chat-send" style="background:#7fba00;color:#000;border:none;padding:.35rem .9rem;font:inherit;font-size:.82rem;cursor:pointer;align-self:flex-end">Send</button>
-        </div>
-      </div>
       <div id="combined-feed"></div>
     </div>
   </div>
   <div class="right">
-    <!-- <div id="stats" style="background:#141414;border:1px solid #333;padding:1rem;margin-bottom:1rem;font-size:.75rem">
-      <h2 style="color:#7fba00;margin-bottom:.5rem;font-size:.85rem">Relation Pulse</h2>
-      <div id="stats-feed" style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem"></div>
-    </div> -->
+    <div id="chat-panel" style="display:flex;flex-direction:column;background:#141414;border:1px solid #222;margin-bottom:1rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem .75rem;border-bottom:1px solid #222;flex-shrink:0">
+        <span style="color:#7fba00;font-size:.75rem;letter-spacing:.05em">GEMINI CHAT</span>
+        <button id="chat-clear" style="background:none;border:1px solid #333;color:#555;padding:.15rem .6rem;font:inherit;font-size:.72rem;cursor:pointer">clear</button>
+      </div>
+      <div id="chat-messages" style="height:50vh;overflow-y:auto;padding:.75rem;display:flex;flex-direction:column;gap:.6rem"></div>
+      <div style="display:flex;gap:.5rem;padding:.5rem .75rem;border-top:1px solid #222;flex-shrink:0">
+        <textarea id="chat-input" rows="1" placeholder="Message\u2026" style="flex:1;background:#0d0d0d;border:1px solid #333;color:#ccc;padding:.35rem .6rem;font:inherit;font-size:.82rem;resize:none;min-height:34px;max-height:120px;field-sizing:content"></textarea>
+        <button id="chat-send" style="background:#7fba00;color:#000;border:none;padding:.35rem .9rem;font:inherit;font-size:.82rem;cursor:pointer;align-self:flex-end">Send</button>
+      </div>
+    </div>
     <form id="form">
       <h2>Memory</h2>
       <div class="selects">
@@ -186,11 +182,6 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
       <button type="submit">Save</button>
       <div id="status"></div>
     </form>
-    <div id="collab" style="background:#141414;border:1px solid #333;padding:1rem;margin-top:1rem">
-      <h2 style="color:#7fba00;margin-bottom:.5rem;font-size:.85rem">Collab</h2>
-      <div class="count" id="collab-count"></div>
-      <div id="collab-feed"></div>
-    </div>
   </div>
 </div>
 
@@ -230,23 +221,46 @@ function saveCurrentState() {
     limit:    document.getElementById('combined-limit').value,
     relation: document.getElementById('filter-relation').value,
     graph:    document.getElementById('show-graph').checked,
-    chat:     document.getElementById('show-chat').checked,
     hide:     document.getElementById('hide-records').checked,
   };
   localStorage.setItem('eg-current', JSON.stringify(state));
 }
 
 async function loadCombined() {
-  const entityList = Array.from(selectedEntities).join(',');
-  if (!entityList) return;
-  const limit = document.getElementById('combined-limit').value || 30;
+  const limit = parseInt(document.getElementById('combined-limit').value || 30, 10);
   const relation = document.getElementById('filter-relation').value;
-  let url = '/api/memories?entity=' + entityList + '&count=' + limit;
-  if (relation) url += '&relation=' + encodeURIComponent(relation);
-  const r = await fetch(url);
-  const data = await r.json();
-  const feed = document.getElementById('combined-feed');
-  feed.innerHTML = data.map(renderCard).join('');
+  const collabSelected = selectedEntities.has('Collab');
+  const regularEntities = Array.from(selectedEntities).filter(function(e) { return e !== 'Collab'; });
+
+  if (!regularEntities.length && !collabSelected) return;
+
+  let allData = [];
+
+  if (regularEntities.length) {
+    let url = '/api/memories?entity=' + regularEntities.join(',') + '&count=' + limit;
+    if (relation) url += '&relation=' + encodeURIComponent(relation);
+    const r = await fetch(url);
+    allData.push(...(await r.json()));
+  }
+
+  if (collabSelected) {
+    let url = '/api/memories?entity=' + ENTITIES.join(',') + '&work=Collab&count=' + limit;
+    if (relation) url += '&relation=' + encodeURIComponent(relation);
+    const r = await fetch(url);
+    allData.push(...(await r.json()));
+  }
+
+  // deduplicate, sort newest first, cap at limit
+  const seen = new Set();
+  allData = allData.filter(function(m) {
+    if (seen.has(m.Id)) return false;
+    seen.add(m.Id);
+    return true;
+  });
+  allData.sort(function(a, b) { return b.TickStamp - a.TickStamp; });
+  allData = allData.slice(0, limit);
+
+  document.getElementById('combined-feed').innerHTML = allData.map(renderCard).join('');
 }
 
 document.getElementById('hide-records').addEventListener('change', e => {
@@ -299,7 +313,6 @@ document.getElementById('form').addEventListener('submit', async e => {
     document.getElementById('status').textContent = 'Saved.';
     mde.value('');
     await loadCombined();
-    await loadCollab();
   } else {
     document.getElementById('status').textContent = 'Error: ' + r.status;
   }
@@ -314,13 +327,6 @@ async function loadStats() {
     .slice(0, 10)
     .map(s => '<div><span style="color:#7fba00">' + s[1] + '</span> ' + s[0] + '</div>')
     .join('');
-}
-
-async function loadCollab() {
-  const r = await fetch('/api/memories?entity=${ENTITIES.join(",")}&work=Collab&count=30');
-  const data = await r.json();
-  document.getElementById('collab-feed').innerHTML = data.map(renderCard).join('');
-  document.getElementById('collab-count').textContent = data.length + ' records';
 }
 
 // ── Graph ──────────────────────────────────────────────────────────────────
@@ -629,13 +635,6 @@ async function chatSend() {
   sendBtn.disabled = false;
 }
 
-document.getElementById('show-chat').addEventListener('change', function(e) {
-  const panel = document.getElementById('chat-panel');
-  panel.style.display = e.target.checked ? 'flex' : 'none';
-  if (e.target.checked) document.getElementById('chat-input').focus();
-  saveCurrentState();
-});
-
 document.getElementById('chat-send').addEventListener('click', chatSend);
 
 document.getElementById('chat-input').addEventListener('keydown', function(e) {
@@ -649,7 +648,6 @@ document.getElementById('chat-clear').addEventListener('click', function() {
 
 document.addEventListener('DOMContentLoaded', () => {
   loadStats();
-  loadCollab();
 
   // Restore config state
   try {
@@ -667,10 +665,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (cur.hide) {
         document.getElementById('hide-records').checked = true;
         document.getElementById('combined-feed').style.display = 'none';
-      }
-      if (cur.chat) {
-        document.getElementById('show-chat').checked = true;
-        document.getElementById('chat-panel').style.display = 'flex';
       }
       if (cur.graph) {
         document.getElementById('show-graph').checked = true;
