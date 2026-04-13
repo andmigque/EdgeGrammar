@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import http from "http";
+import https from "https";
 import fs from "fs";
 import path from "path";
 import os from "os";
@@ -21,7 +21,7 @@ const GEMINI_MODEL        = process.env.GEMINI_MODEL        ?? "gemini-3-flash-p
 const GEMINI_KEY          = process.env.GEMINI_API_KEY       ?? "";
 const GOOGLE_CLIENT_ID    = process.env.GOOGLE_CLIENT_ID    ?? "";
 const GOOGLE_CLIENT_SECRET= process.env.GOOGLE_CLIENT_SECRET?? "";
-const REDIRECT_URI        = `http://localhost:${PORT}/auth/callback`;
+const REDIRECT_URI        = `https://localhost:${PORT}/auth/callback`;
 const OAUTH_SCOPE         = "openid email profile";
 const ENTITIES  = ["Architect","Gemini","Claude","Grok","GPT","Agent","Codex","Qwen"];
 const WORKS     = ["PowerNixxServer","SystemPrompt","Npm","Pester","Devops","Infrastructure","DataPlane","ModelContextProtocol","Security","Reactor","MarkdownChat","AgentMemory","Research","Plan","Fragment","Frontend","Troubleshoot","GloriousFailure","CMMC","Collab"];
@@ -110,7 +110,11 @@ function hasSession(sid) {
 const HTML      = buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOTNET_EPOCH_OFFSET });
 const CHAT_HTML = buildChatHTML({ MODEL: GEMINI_MODEL });
 
-http.createServer(async (req, res) => {
+const CERT_DIR  = path.join(os.homedir(), ".mkcert");
+const TLS_CERT  = process.env.TLS_CERT ?? path.join(CERT_DIR, "localhost+1.pem");
+const TLS_KEY   = process.env.TLS_KEY  ?? path.join(CERT_DIR, "localhost+1-key.pem");
+
+https.createServer({ cert: fs.readFileSync(TLS_CERT), key: fs.readFileSync(TLS_KEY) }, async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
 
   const vendor = VENDOR[url.pathname];
@@ -176,7 +180,7 @@ http.createServer(async (req, res) => {
   if (req.method === "GET" && url.pathname === "/auth/google") {
     if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
       res.writeHead(500, { "Content-Type": "text/plain" });
-      return res.end("GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set in the environment before using Gemini Chat.\n\nCreate an OAuth 2.0 Client ID at https://console.cloud.google.com/apis/credentials and add http://localhost:7070/auth/callback as an authorized redirect URI.");
+      return res.end("GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set in the environment before using Gemini Chat.\n\nCreate an OAuth 2.0 Client ID at https://console.cloud.google.com/apis/credentials and add https://localhost:7070/auth/callback as an authorized redirect URI.");
     }
     res.writeHead(302, { Location: buildAuthUrl() });
     return res.end();
@@ -264,5 +268,5 @@ http.createServer(async (req, res) => {
   res.writeHead(404);
   res.end();
 }).listen(PORT, () => {
-  process.stderr.write(`edge-grammar-memory  http://localhost:${PORT}\n`);
+  process.stderr.write(`edge-grammar-memory  https://localhost:${PORT}\n`);
 });
