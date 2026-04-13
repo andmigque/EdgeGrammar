@@ -33,7 +33,7 @@ server.tool(
   {
     entity: z.string().describe("Entity name — Claude, Architect, or Gemini"),
     count:  z.number().int().min(1).max(10000).default(10).describe("Number of recent memories to return (default 10)"),
-    work:   z.string().optional().describe("Filter by work domain — e.g. AgentCollab, Plan, GloriousFailure"),
+    work:   z.string().optional().describe("Filter by work domain — e.g. Collab, Plan, GloriousFailure"),
   },
   async ({ entity, count, work }) => {
     const entityDir = path.join(MEMORY_ROOT, entity);
@@ -165,7 +165,7 @@ server.tool(
   "get_collabs",
   "Get recent Collaborates memories across all entities, merged and sorted by tick",
   {
-    count: z.number().int().min(1).max(10000).default(30).describe("Number of recent collab entries to return (default 30)"),
+    count: z.number().int().min(1).max(10000).default(5).describe("Number of recent collab entries to return (default 5)"),
   },
   async ({ count }) => {
     if (!fs.existsSync(MEMORY_ROOT)) {

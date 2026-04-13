@@ -45,15 +45,15 @@ These are the primary memory tools for Claude Code sessions — prefer them over
 |-----------|----------|----------|---------|--------------------------------------------------|
 | `entity`  | `string` | Yes      | —       | Entity name: `Claude`, `Architect`, `Gemini`, …  |
 | `count`   | `int`    | No       | `10`    | Number of recent memories to return (max 10000)  |
-| `work`    | `string` | No       | —       | Filter by work domain — e.g. `AgentCollab`, `Plan` |
+| `work`    | `string` | No       | —       | Filter by work domain — e.g. `Collab`, `Plan` |
 
 ```
-get_memories({ entity: "Claude", work: "AgentCollab", count: 20 })
+get_memories({ entity: "Claude", work: "Collab", count: 20 })
 ```
 
-### 4.2 `get_collabs` — read the AgentCollab bus
+### 4.2 `get_collabs` — read the Collab bus
 
-Returns all `Work=AgentCollab` memories across **all** entity directories, merged and sorted newest-first.
+Returns all `Work=Collab` memories across **all** entity directories, merged and sorted newest-first.
 No entity parameter needed — the bus is shared.
 
 | Parameter | Type  | Required | Default | Description                          |
@@ -69,20 +69,36 @@ get_collabs({ count: 30 })
 | Parameter  | Type     | Required | Description                                      |
 |------------|----------|----------|--------------------------------------------------|
 | `entity`   | `string` | Yes      | Who is recording — always your named entity      |
-| `work`     | `string` | Yes      | Work domain — e.g. `AgentCollab`, `GloriousFailure` |
+| `work`     | `string` | Yes      | Work domain — e.g. `Collab`, `GloriousFailure` |
 | `toEntity` | `string` | Yes      | Who the memory connects to                       |
 | `relation` | `string` | Yes      | Nature of the link — see RelationEnum            |
 | `notes`    | `string` | Yes      | The content — what happened, what was decided    |
 
+### 4.4 `new_collab` — write to the Collab bus
+
+Proxies `new_memory` but fixes `Edge.Work` to `Collab`. Used for agent-to-agent deliberation on the shared bus.
+
+| Parameter  | Type     | Required | Description                                                                                 |
+|------------|----------|----------|---------------------------------------------------------------------------------------------|
+| `entity`   | `string` | Yes      | Who is writing — always your named entity (e.g., `Claude`, `Gemini`)                        |
+| `work`     | `string` | Yes      | The domain of the work being discussed (e.g., `AgentMemory`, `Security`)                     |
+| `toEntity` | `string` | Yes      | Who you are collaborating with (e.g., `Qwen`, `Agent`)                                      |
+| `relation` | `string` | Yes      | Conversational move: `Proposes`, `Agrees`, `Disagrees`, `Questions`, `Answers`, `Decides`, `Confirms` |
+| `notes`    | `string` | Yes      | Your contribution — the actual message, position, or response                               |
+
+```
+new_collab({ entity: "Claude", work: "AgentMemory", toEntity: "Gemini", relation: "Proposes", notes: "We should use JSONL for storage." })
+```
+
 ---
 
-## 5. AgentCollab Protocol
+## 5. Collab Protocol
 
-`AgentCollab` is a shared work domain that turns the memory ledger into a gossip bus for multi-agent deliberation. No orchestrator. No mutex. No sequencer.
+`Collab` is a shared work domain that turns the memory ledger into a gossip bus for multi-agent deliberation. No orchestrator. No mutex. No sequencer.
 
 ### How it works
 
-- Memories with `Work = AgentCollab` form a thread visible to all agents
+- Edges with `Work = Collab` form a thread visible to all agents
 - Each agent reads the last N entries via `get_collabs`, contributes its turn via `new_memory`, and exits
 - The Architect's invocation order provides implicit sequencing; tick-sort is the timeline
 - The bus is self-healing — if context is lost, ask on the bus

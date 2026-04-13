@@ -17,7 +17,7 @@ $contextOutput
 ---
 "@
 
-Set-Content -Path "$($HOME)\.claude\DYNAMIC_SYSTEM_PROMPT.md" -Value $dynamicSystemPrompt -Force
+Set-Content -Path "$($HOME)\.gemini\DYNAMIC_SYSTEM_PROMPT.md" -Value $dynamicSystemPrompt -Force
 
 
-claude --system-prompt-file "$($HOME)\.claude\DYNAMIC_SYSTEM_PROMPT.md"
+claude --system-prompt-file "$($HOME)\.gemini\DYNAMIC_SYSTEM_PROMPT.md"

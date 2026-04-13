@@ -39,3 +39,8 @@ function Invoke-Claude {
     $launchClaude = Join-Path -Path "$script:EdgeGrammarHome" "Modules" "Config" "Claude" "Launch-Claude.ps1"
     & $launchClaude
 }
+
+function Invoke-Claude {
+    $launchClaude = Join-Path -Path "$script:EdgeGrammarHome" "Modules" "Config" "Gemini" "Launch-Gemini.ps1"
+    & $launchClaude
+}
