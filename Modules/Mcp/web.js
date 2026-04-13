@@ -18,7 +18,7 @@ const PORT        = 7070;
 const MEMORY_ROOT = path.join(os.homedir(), "EdgeGrammar", "agentmemory");
 const ENTITIES  = ["Architect","Gemini","Claude","Grok","GPT","Agent","Codex","Qwen"];
 const WORKS     = ["PowerNixxServer","SystemPrompt","Npm","Pester","Devops","Infrastructure","DataPlane","ModelContextProtocol","Security","Reactor","MarkdownChat","AgentMemory","Research","Plan","Fragment","Frontend","Troubleshoot","GloriousFailure","CMMC","Collab"];
-const RELATIONS = ["Depends","Creates","Tests","Refactors","Throws","Runs","Guides","Learns","Configures","Interrupts","Thinks","Delivers","Reviews","Documents","Implements","Fixes","Observes","Analyzes","Designs","Encourages","Requests","Reports","Credits","Evolves","Understands","Thanks","Accepts","Imagines","Decodes","Questions","Plans","Grows","Transcends","Reflects","Realizes","Integrates","Delegates","Proposes","Researches","Agrees","Disagrees","Answers","Confirms","Decides"];
+const RELATIONS = ["Depends","Creates","Tests","Refactors","Throws","Runs","Guides","Learns","Configures","Interrupts","Thinks","Delivers","Reviews","Documents","Implements","Fixes","Observes","Analyzes","Designs","Encourages","Requests","Reports","Evolves","Understands","Accepts","Imagines","Decodes","Questions","Plans","Grows","Transcends","Reflects","Realizes","Integrates","Delegates","Proposes","Researches","Agrees","Disagrees","Answers","Confirms","Decides"];
 
 const DOTNET_EPOCH_OFFSET = 621355968000000000n;
 const CENTURY_BEGIN_TICKS = 631139040000000000n;
