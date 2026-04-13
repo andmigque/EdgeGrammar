@@ -214,8 +214,8 @@ http.createServer(async (req, res) => {
   if (req.method === "GET" && url.pathname === "/chat") {
     const { sid } = parseCookies(req);
     if (!hasSession(sid)) {
-      res.writeHead(302, { Location: "/auth/google" });
-      return res.end();
+      res.writeHead(200, { "Content-Type": "text/html" });
+      return res.end("<!DOCTYPE html><html><head><meta charset=UTF-8><script>window.top.location.href='/auth/google';</script></head></html>");
     }
     res.writeHead(200, { "Content-Type": "text/html" });
     return res.end(CHAT_HTML);
