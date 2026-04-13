@@ -17,8 +17,11 @@ const VENDOR   = {
 
 const PORT        = 7070;
 const MEMORY_ROOT = path.join(os.homedir(), "EdgeGrammar", "agentmemory");
-const GEMINI_KEY  = process.env.GEMINI_API_KEY ?? "";
-const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-2.0-flash";
+const GEMINI_MODEL        = process.env.GEMINI_MODEL        ?? "gemini-2.0-flash";
+const GOOGLE_CLIENT_ID    = process.env.GOOGLE_CLIENT_ID    ?? "";
+const GOOGLE_CLIENT_SECRET= process.env.GOOGLE_CLIENT_SECRET?? "";
+const REDIRECT_URI        = `http://localhost:${PORT}/auth/callback`;
+const OAUTH_SCOPE         = "https://www.googleapis.com/auth/generative-language";
 const ENTITIES  = ["Architect","Gemini","Claude","Grok","GPT","Agent","Codex","Qwen"];
 const WORKS     = ["PowerNixxServer","SystemPrompt","Npm","Pester","Devops","Infrastructure","DataPlane","ModelContextProtocol","Security","Reactor","MarkdownChat","AgentMemory","Research","Plan","Fragment","Frontend","Troubleshoot","GloriousFailure","CMMC","Collab"];
 const RELATIONS = ["Depends","Creates","Tests","Refactors","Throws","Runs","Guides","Learns","Configures","Interrupts","Thinks","Delivers","Reviews","Documents","Implements","Fixes","Observes","Analyzes","Designs","Encourages","Requests","Reports","Evolves","Understands","Accepts","Imagines","Decodes","Questions","Plans","Grows","Transcends","Reflects","Realizes","Integrates","Delegates","Proposes","Researches","Agrees","Disagrees","Answers","Confirms","Decides"];
@@ -56,6 +59,69 @@ function saveMemory({ entity, work, toEntity, relation, notes, edgeWork }) {
   const filepath = path.join(entityDir, `${filenameTicks()}.jsonl`);
   fs.writeFileSync(filepath, JSON.stringify(memory), "utf8");
   return memory;
+}
+
+// ── OAuth session store ────────────────────────────────────────────────────
+const sessions = new Map(); // sid -> { accessToken, refreshToken, expiresAt }
+
+function parseCookies(req) {
+  const header = req.headers.cookie ?? "";
+  if (!header) return {};
+  return Object.fromEntries(
+    header.split(";").map(c => {
+      const [k, ...v] = c.trim().split("=");
+      return [decodeURIComponent(k.trim()), decodeURIComponent(v.join("="))];
+    })
+  );
+}
+
+function buildAuthUrl() {
+  const p = new URLSearchParams({
+    client_id:     GOOGLE_CLIENT_ID,
+    redirect_uri:  REDIRECT_URI,
+    response_type: "code",
+    scope:         OAUTH_SCOPE,
+    access_type:   "offline",
+    prompt:        "consent",
+  });
+  return `https://accounts.google.com/o/oauth2/v2/auth?${p}`;
+}
+
+async function exchangeCode(code) {
+  const r = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      code,
+      client_id:     GOOGLE_CLIENT_ID,
+      client_secret: GOOGLE_CLIENT_SECRET,
+      redirect_uri:  REDIRECT_URI,
+      grant_type:    "authorization_code",
+    }),
+  });
+  return r.json();
+}
+
+async function getValidToken(sid) {
+  const s = sessions.get(sid);
+  if (!s) return null;
+  if (Date.now() < s.expiresAt) return s.accessToken;
+  if (!s.refreshToken) return null;
+  const r = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id:     GOOGLE_CLIENT_ID,
+      client_secret: GOOGLE_CLIENT_SECRET,
+      refresh_token: s.refreshToken,
+      grant_type:    "refresh_token",
+    }),
+  });
+  const data = await r.json();
+  if (!data.access_token) return null;
+  s.accessToken = data.access_token;
+  s.expiresAt   = Date.now() + (data.expires_in ?? 3600) * 1000 - 60000;
+  return s.accessToken;
 }
 
 const HTML      = buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOTNET_EPOCH_OFFSET });
@@ -124,12 +190,58 @@ http.createServer((req, res) => {
     return;
   }
 
+  if (req.method === "GET" && url.pathname === "/auth/google") {
+    res.writeHead(302, { Location: buildAuthUrl() });
+    return res.end();
+  }
+
+  if (req.method === "GET" && url.pathname === "/auth/callback") {
+    const code = url.searchParams.get("code");
+    if (!code) {
+      res.writeHead(400, { "Content-Type": "text/plain" });
+      return res.end("Missing code");
+    }
+    try {
+      const data = await exchangeCode(code);
+      if (!data.access_token) {
+        res.writeHead(502, { "Content-Type": "text/plain" });
+        return res.end(data.error_description ?? "Token exchange failed");
+      }
+      const sid = randomUUID();
+      sessions.set(sid, {
+        accessToken:  data.access_token,
+        refreshToken: data.refresh_token ?? null,
+        expiresAt:    Date.now() + (data.expires_in ?? 3600) * 1000 - 60000,
+      });
+      res.writeHead(302, {
+        Location:   "/chat",
+        "Set-Cookie": `sid=${sid}; HttpOnly; SameSite=Lax; Path=/`,
+      });
+      return res.end();
+    } catch (err) {
+      res.writeHead(500, { "Content-Type": "text/plain" });
+      return res.end(err.message);
+    }
+  }
+
   if (req.method === "GET" && url.pathname === "/chat") {
+    const { sid } = parseCookies(req);
+    const token = sid ? await getValidToken(sid) : null;
+    if (!token) {
+      res.writeHead(302, { Location: "/auth/google" });
+      return res.end();
+    }
     res.writeHead(200, { "Content-Type": "text/html" });
     return res.end(CHAT_HTML);
   }
 
   if (req.method === "POST" && url.pathname === "/api/chat") {
+    const { sid } = parseCookies(req);
+    const token = sid ? await getValidToken(sid) : null;
+    if (!token) {
+      res.writeHead(401, { "Content-Type": "text/plain" });
+      return res.end("Unauthorized");
+    }
     let body = "";
     req.on("data", d => body += d);
     req.on("end", async () => {
@@ -139,10 +251,13 @@ http.createServer((req, res) => {
           ...history.map(h => ({ role: h.role, parts: [{ text: h.content }] })),
           { role: "user", parts: [{ text: message }] },
         ];
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${GEMINI_KEY}`;
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse`;
         const apiRes = await fetch(apiUrl, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type":  "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
           body: JSON.stringify({ contents }),
         });
         if (!apiRes.ok) {
@@ -153,7 +268,7 @@ http.createServer((req, res) => {
         res.writeHead(200, {
           "Content-Type": "text/event-stream",
           "Cache-Control": "no-cache",
-          "Connection": "keep-alive",
+          "Connection":    "keep-alive",
         });
         for await (const chunk of apiRes.body) {
           res.write(chunk);
