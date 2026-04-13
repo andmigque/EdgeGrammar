@@ -11,7 +11,37 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
   body{font-family:monospace;background:#0d0d0d;color:#ccc;padding:1.5rem;display:flex;flex-direction:column}
-  h1{color:#7fba00;font-size:1.1rem;margin-bottom:1.2rem;letter-spacing:.05em}
+  h1{color:#7fba00;font-size:1.1rem;letter-spacing:.05em}
+  .h1-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem}
+  .ham{background:none;border:none;color:#7fba00;font-size:1.3rem;cursor:pointer;padding:0;line-height:1;flex-shrink:0}
+  .ham:hover{color:#a0d020}
+  .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10}
+  .sidebar-overlay.open{display:block}
+  .sidebar{position:fixed;top:0;left:0;height:100%;width:280px;background:#111;border-right:1px solid #2a2a2a;z-index:11;transform:translateX(-100%);transition:transform .2s ease;display:flex;flex-direction:column}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-head{display:flex;align-items:center;justify-content:space-between;padding:.65rem 1rem;border-bottom:1px solid #222;flex-shrink:0}
+  .sidebar-head span{color:#7fba00;font-size:.78rem;letter-spacing:.06em}
+  .sidebar-close{background:none;border:none;color:#555;font-size:1.2rem;cursor:pointer;line-height:1}
+  .sidebar-close:hover{color:#7fba00}
+  .sidebar-body{flex:1;overflow-y:auto;padding:.75rem}
+  .state-item{background:#141414;border:1px solid #222;padding:.45rem .7rem;margin-bottom:.45rem;display:flex;justify-content:space-between;align-items:center;cursor:pointer;gap:.5rem}
+  .state-item:hover{border-color:#7fba00}
+  .state-name{font-size:.8rem;color:#ccc}
+  .state-ts{font-size:.65rem;color:#555;margin-top:.1rem}
+  .state-del{background:none;border:none;color:#555;cursor:pointer;font-size:1rem;padding:0;line-height:1;flex-shrink:0}
+  .state-del:hover{color:#e06c75}
+  .json-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:20;align-items:center;justify-content:center}
+  .json-overlay.open{display:flex}
+  .json-modal{background:#111;border:1px solid #333;width:min(720px,92vw);max-height:80vh;display:flex;flex-direction:column}
+  .json-modal-head{display:flex;align-items:center;justify-content:space-between;padding:.5rem 1rem;border-bottom:1px solid #222;flex-shrink:0}
+  .json-modal-head span{color:#7fba00;font-size:.75rem;letter-spacing:.06em}
+  .json-close{background:none;border:none;color:#555;font-size:1.2rem;cursor:pointer;line-height:1}
+  .json-close:hover{color:#7fba00}
+  .json-modal pre{flex:1;overflow:auto;padding:1rem;font-size:.74rem;color:#bbb;margin:0;white-space:pre-wrap;word-break:break-all;line-height:1.5}
+  .btn-save{background:none;border:1px solid #333;color:#888;padding:.2rem .65rem;font:inherit;font-size:.78rem;cursor:pointer;flex-shrink:0}
+  .btn-save:hover{border-color:#7fba00;color:#7fba00}
+  .card-json{background:none;border:none;color:#444;cursor:pointer;font:inherit;font-size:.72rem;padding:0 .3rem;line-height:1;flex-shrink:0}
+  .card-json:hover{color:#7fba00}
   .layout{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;flex:1;min-height:0}
   .left{order:2;min-width:0;overflow-y:auto;height:100%;padding-left:1rem;padding-right:1rem}.right{order:1;min-width:0;overflow-y:auto;height:100%;padding-left:1rem;padding-right:1rem}
   @media(min-width:992px){
@@ -65,9 +95,34 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
   ::-webkit-scrollbar-thumb{background:#333;border-radius:4px}
   ::-webkit-scrollbar-thumb:hover{background:#7fba00}
   * {scrollbar-width:thin;scrollbar-color:#333 #0d0d0d}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 </style>
 </head>
 <body>
+<div class="h1-row">
+  <h1>EdgeGrammar</h1>
+  <button class="ham" id="ham-btn">&#9776;</button>
+</div>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <span>SAVED STATES</span>
+    <button class="sidebar-close" id="sidebar-close">&#215;</button>
+  </div>
+  <div class="sidebar-body" id="sidebar-body"></div>
+</div>
+
+<div class="json-overlay" id="json-overlay">
+  <div class="json-modal">
+    <div class="json-modal-head">
+      <span>JSON</span>
+      <button class="json-close" id="json-close">&#215;</button>
+    </div>
+    <pre id="json-pre"></pre>
+  </div>
+</div>
+
 <div class="layout">
   <div class="left">
     <div class="tabs" id="tabs">
@@ -84,13 +139,28 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
         <label style="color:#888;cursor:pointer;display:flex;align-items:center">
           <input type="checkbox" id="show-graph" style="margin-right:0.3rem"> Graph
         </label>
+        <label style="color:#888;cursor:pointer;display:flex;align-items:center">
+          <input type="checkbox" id="show-chat" style="margin-right:0.3rem"> Chat
+        </label>
         <select id="filter-relation" style="background:#0d0d0d;border:1px solid #333;color:#888;padding:.25rem .5rem;font:inherit;font-size:.78rem;cursor:pointer">
           <option value="">— relation —</option>
           ${RELATIONS.map(r => `<option value="${r}">${r}</option>`).join("")}
         </select>
+        <button class="btn-save" id="btn-save">Save</button>
       </div>
       <div id="graph-panel" style="display:none;position:relative;width:100%;height:480px;background:#141414;border:1px solid #222;margin-bottom:.7rem;cursor:crosshair">
         <svg id="graph-svg" style="width:100%;height:100%;display:block"></svg>
+      </div>
+      <div id="chat-panel" style="display:none;flex-direction:column;background:#141414;border:1px solid #222;margin-bottom:.7rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem .75rem;border-bottom:1px solid #222;flex-shrink:0">
+          <span style="color:#7fba00;font-size:.75rem;letter-spacing:.05em">GEMINI CHAT</span>
+          <button id="chat-clear" style="background:none;border:1px solid #333;color:#555;padding:.15rem .6rem;font:inherit;font-size:.72rem;cursor:pointer">clear</button>
+        </div>
+        <div id="chat-messages" style="height:340px;overflow-y:auto;padding:.75rem;display:flex;flex-direction:column;gap:.6rem"></div>
+        <div style="display:flex;gap:.5rem;padding:.5rem .75rem;border-top:1px solid #222;flex-shrink:0">
+          <textarea id="chat-input" rows="1" placeholder="Message\u2026" style="flex:1;background:#0d0d0d;border:1px solid #333;color:#ccc;padding:.35rem .6rem;font:inherit;font-size:.82rem;resize:none;min-height:34px;max-height:120px;field-sizing:content"></textarea>
+          <button id="chat-send" style="background:#7fba00;color:#000;border:none;padding:.35rem .9rem;font:inherit;font-size:.82rem;cursor:pointer;align-self:flex-end">Send</button>
+        </div>
       </div>
       <div id="combined-feed"></div>
     </div>
@@ -126,7 +196,10 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
 <script>
 const ENTITIES = ${JSON.stringify(ENTITIES)};
 
+const memoryStore = {};
+
 function renderCard(m) {
+  memoryStore[m.Id] = m;
   const date = new Date(
     Math.round(Number(BigInt(m.TickStamp) + ${CENTURY_BEGIN_TICKS.toString()}n) / 10000)
     - ${Number(DOTNET_EPOCH_OFFSET / 10000n)}
@@ -134,7 +207,10 @@ function renderCard(m) {
   return \`<div class="card collapsed">
     <div class="card-header">
       <div class="card-meta"><span>\${date}</span></div>
-      <button class="card-toggle" onclick="this.closest('.card').classList.toggle('collapsed')">&#9662;</button>
+      <div style="display:flex;align-items:center;gap:.25rem">
+        <button class="card-json" onclick="showJSON('\${m.Id}')" title="View raw JSON">{ }</button>
+        <button class="card-toggle" onclick="this.closest('.card').classList.toggle('collapsed')">&#9662;</button>
+      </div>
     </div>
     <div class="card-relation"><span class="entity">\${m.Entity}</span> <span class="relation">\${m.Edge?.Relation ?? ''}</span> <span class="entity">\${m.Edge?.ToEntity ?? ''}</span> by working on <span class="work">\${m.Work}</span></div>
     <div class="card-body">
@@ -215,9 +291,11 @@ document.getElementById('form').addEventListener('submit', async e => {
 });
 
 async function loadStats() {
+  const el = document.getElementById('stats-feed');
+  if (!el) return;
   const r = await fetch('/api/stats/relations');
   const data = await r.json();
-  document.getElementById('stats-feed').innerHTML = data
+  el.innerHTML = data
     .slice(0, 10)
     .map(s => '<div><span style="color:#7fba00">' + s[1] + '</span> ' + s[0] + '</div>')
     .join('');
@@ -333,6 +411,198 @@ document.getElementById('show-graph').addEventListener('change', async function(
 document.getElementById('graph-panel').addEventListener('click', function() {
   graphSelected = null;
   renderGraph();
+});
+
+// ── Sidebar ────────────────────────────────────────────────────────────────
+function openSidebar() {
+  renderSavedStates();
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebar-overlay').classList.add('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+document.getElementById('ham-btn').addEventListener('click', openSidebar);
+document.getElementById('sidebar-close').addEventListener('click', closeSidebar);
+document.getElementById('sidebar-overlay').addEventListener('click', closeSidebar);
+
+// ── JSON Modal ─────────────────────────────────────────────────────────────
+function showJSON(id) {
+  const m = memoryStore[id];
+  if (!m) return;
+  document.getElementById('json-pre').textContent = JSON.stringify(m, null, 2);
+  document.getElementById('json-overlay').classList.add('open');
+}
+function closeJSON() {
+  document.getElementById('json-overlay').classList.remove('open');
+}
+document.getElementById('json-close').addEventListener('click', closeJSON);
+document.getElementById('json-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeJSON();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') { closeJSON(); closeSidebar(); }
+});
+
+// ── State Save / Restore ───────────────────────────────────────────────────
+function getState() {
+  return {
+    entities: Array.from(selectedEntities),
+    limit:    document.getElementById('combined-limit').value,
+    relation: document.getElementById('filter-relation').value,
+    graph:    document.getElementById('show-graph').checked,
+  };
+}
+
+function applyState(s) {
+  selectedEntities.clear();
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+  (s.entities || []).forEach(function(e) {
+    selectedEntities.add(e);
+    const tab = document.querySelector('.tab[data-entity="' + e + '"]');
+    if (tab) tab.classList.add('active');
+  });
+  if (s.limit) document.getElementById('combined-limit').value = s.limit;
+  if (s.relation !== undefined) document.getElementById('filter-relation').value = s.relation;
+  const graphCb = document.getElementById('show-graph');
+  const graphPanel = document.getElementById('graph-panel');
+  graphCb.checked = !!s.graph;
+  graphPanel.style.display = s.graph ? 'block' : 'none';
+  loadCombined();
+  if (s.graph) { if (graphCache.entities.length === 0) loadGraph(); else renderGraph(); }
+}
+
+function getSavedStates() {
+  try { return JSON.parse(localStorage.getItem('eg-states') || '[]'); }
+  catch(_) { return []; }
+}
+
+function renderSavedStates() {
+  const body = document.getElementById('sidebar-body');
+  const states = getSavedStates();
+  if (!states.length) {
+    body.innerHTML = '<div style="color:#444;font-size:.78rem;padding:.5rem 0">No saved states.</div>';
+    return;
+  }
+  body.innerHTML = states.map(function(s) {
+    const stateJson = JSON.stringify(s.state).replace(/"/g, '&quot;');
+    return '<div class="state-item" onclick="applyState(' + stateJson + ');closeSidebar()">' +
+      '<div><div class="state-name">' + escHtml(s.name) + '</div>' +
+      '<div class="state-ts">' + new Date(s.ts).toLocaleString() + '</div></div>' +
+      '<button class="state-del" onclick="event.stopPropagation();deleteSavedState(' + s.ts + ')" title="Delete">&#215;</button>' +
+      '</div>';
+  }).join('');
+}
+
+function deleteSavedState(ts) {
+  const states = getSavedStates().filter(function(s) { return s.ts !== ts; });
+  localStorage.setItem('eg-states', JSON.stringify(states));
+  renderSavedStates();
+}
+
+document.getElementById('btn-save').addEventListener('click', function() {
+  const name = prompt('Name this state:');
+  if (!name) return;
+  const states = getSavedStates();
+  states.unshift({ name: name, ts: Date.now(), state: getState() });
+  localStorage.setItem('eg-states', JSON.stringify(states.slice(0, 20)));
+});
+
+// ── Chat ───────────────────────────────────────────────────────────────────
+let chatHistory = [];
+let chatStreaming = false;
+
+function chatScrollBottom() {
+  const el = document.getElementById('chat-messages');
+  el.scrollTop = el.scrollHeight;
+}
+
+function chatAppend(role, text) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.style.cssText = 'max-width:85%;padding:.45rem .7rem;font-size:.82rem;white-space:pre-wrap;word-break:break-word;line-height:1.5;' +
+    (role === 'user'
+      ? 'align-self:flex-end;background:#1a1a1a;border:1px solid #333;color:#ccc;'
+      : 'align-self:flex-start;background:#111;border:1px solid #2a2a2a;color:#bbb;');
+  const content = document.createElement('span');
+  content.textContent = text;
+  div.appendChild(content);
+  msgs.appendChild(div);
+  chatScrollBottom();
+  return { div, content };
+}
+
+async function chatSend() {
+  const input = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('chat-send');
+  const text = input.value.trim();
+  if (!text || chatStreaming) return;
+  input.value = '';
+  chatAppend('user', text);
+  chatHistory.push({ role: 'user', content: text });
+  chatStreaming = true;
+  sendBtn.disabled = true;
+  const { div: msgDiv, content: contentSpan } = chatAppend('assistant', '');
+  const cursor = document.createElement('span');
+  cursor.style.cssText = 'display:inline-block;width:7px;height:.85em;background:#7fba00;animation:blink .8s steps(1) infinite;vertical-align:text-bottom;margin-left:2px';
+  msgDiv.appendChild(cursor);
+  let accumulated = '';
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, history: chatHistory.slice(0, -1) })
+    });
+    if (!res.ok) {
+      contentSpan.textContent = 'Error ' + res.status + ': ' + (await res.text());
+      msgDiv.style.borderColor = '#4a1a1a';
+    } else {
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split('\\n');
+        buf = lines.pop();
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const raw = line.slice(6).trim();
+          if (!raw || raw === '[DONE]') continue;
+          try {
+            const chunk = JSON.parse(raw).candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+            if (chunk) { accumulated += chunk; contentSpan.textContent = accumulated; chatScrollBottom(); }
+          } catch (_) {}
+        }
+      }
+    }
+  } catch (err) {
+    contentSpan.textContent = 'Network error: ' + err.message;
+    msgDiv.style.borderColor = '#4a1a1a';
+  }
+  cursor.remove();
+  if (accumulated) chatHistory.push({ role: 'model', content: accumulated });
+  chatStreaming = false;
+  sendBtn.disabled = false;
+}
+
+document.getElementById('show-chat').addEventListener('change', function(e) {
+  const panel = document.getElementById('chat-panel');
+  panel.style.display = e.target.checked ? 'flex' : 'none';
+  if (e.target.checked) document.getElementById('chat-input').focus();
+});
+
+document.getElementById('chat-send').addEventListener('click', chatSend);
+
+document.getElementById('chat-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); chatSend(); }
+});
+
+document.getElementById('chat-clear').addEventListener('click', function() {
+  chatHistory = [];
+  document.getElementById('chat-messages').innerHTML = '';
 });
 
 document.addEventListener('DOMContentLoaded', () => {

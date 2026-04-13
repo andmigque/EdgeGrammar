@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import http from "http";
+import https from "https";
 import fs from "fs";
 import path from "path";
 import os from "os";
@@ -16,9 +16,24 @@ const VENDOR   = {
 
 const PORT        = 7070;
 const MEMORY_ROOT = path.join(os.homedir(), "EdgeGrammar", "agentmemory");
+const CERT_DIR    = path.join(os.homedir(), ".mkcert");
+const TLS_CERT    = process.env.TLS_CERT ?? path.join(CERT_DIR, "localhost+1.pem");
+const TLS_KEY     = process.env.TLS_KEY  ?? path.join(CERT_DIR, "localhost+1-key.pem");
 const ENTITIES  = ["Architect","Gemini","Claude","Grok","GPT","Agent","Codex","Qwen"];
 const WORKS     = ["PowerNixxServer","SystemPrompt","Npm","Pester","Devops","Infrastructure","DataPlane","ModelContextProtocol","Security","Reactor","MarkdownChat","AgentMemory","Research","Plan","Fragment","Frontend","Troubleshoot","GloriousFailure","CMMC","Collab"];
 const RELATIONS = ["Depends","Creates","Tests","Refactors","Throws","Runs","Guides","Learns","Configures","Interrupts","Thinks","Delivers","Reviews","Documents","Implements","Fixes","Observes","Analyzes","Designs","Encourages","Requests","Reports","Evolves","Understands","Accepts","Imagines","Decodes","Questions","Plans","Grows","Transcends","Reflects","Realizes","Integrates","Delegates","Proposes","Researches","Agrees","Disagrees","Answers","Confirms","Decides"];
+
+const GEMINI_KEY   = process.env.GEMINI_API_KEY ?? "";
+const GEMINI_MODEL = process.env.GEMINI_MODEL   ?? "gemini-3-flash-preview";
+const SYSTEM_PROMPT = `You are a secure assistant. Before returning any response, automatically redact all of the following:
+- PII: full names, email addresses, phone numbers, physical addresses, SSNs, dates of birth, IP addresses, usernames, account numbers, passwords, passport/license/ID numbers, biometric data
+- CUI: controlled unclassified information, export-controlled data (EAR/ITAR), law enforcement sensitive, privacy act records, procurement-sensitive, financial data
+- Credentials: API keys, tokens, secrets, private keys, connection strings
+- Organization-internal: internal hostnames, internal IP ranges, employee IDs, org charts, unreleased product details
+
+Replace each redacted value with [REDACTED]. If an entire response would consist only of redacted values, reply: "That information cannot be displayed."
+
+Apply redaction silently — do not explain or annotate what was removed.`;
 
 const DOTNET_EPOCH_OFFSET = 621355968000000000n;
 const CENTURY_BEGIN_TICKS = 631139040000000000n;
@@ -57,8 +72,8 @@ function saveMemory({ entity, work, toEntity, relation, notes, edgeWork }) {
 
 const HTML = buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOTNET_EPOCH_OFFSET });
 
-http.createServer((req, res) => {
-  const url = new URL(req.url, `http://localhost:${PORT}`);
+https.createServer({ cert: fs.readFileSync(TLS_CERT), key: fs.readFileSync(TLS_KEY) }, (req, res) => {
+  const url = new URL(req.url, `https://localhost:${PORT}`);
 
   const vendor = VENDOR[url.pathname];
   if (req.method === "GET" && vendor) {
@@ -120,8 +135,51 @@ http.createServer((req, res) => {
     return;
   }
 
+  if (req.method === "POST" && url.pathname === "/api/chat") {
+    let body = "";
+    req.on("data", d => body += d);
+    req.on("end", async () => {
+      try {
+        const { message, history = [] } = JSON.parse(body);
+        const contents = [
+          ...history.map(h => ({ role: h.role, parts: [{ text: h.content }] })),
+          { role: "user", parts: [{ text: message }] },
+        ];
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${GEMINI_KEY}`;
+        const apiRes = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+            contents,
+          }),
+        });
+        if (!apiRes.ok) {
+          const err = await apiRes.text();
+          res.writeHead(apiRes.status, { "Content-Type": "text/plain" });
+          return res.end(err);
+        }
+        res.writeHead(200, {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          "Connection":    "keep-alive",
+        });
+        for await (const chunk of apiRes.body) {
+          res.write(chunk);
+        }
+        res.end();
+      } catch (err) {
+        if (!res.headersSent) {
+          res.writeHead(400, { "Content-Type": "text/plain" });
+        }
+        res.end(err.message);
+      }
+    });
+    return;
+  }
+
   res.writeHead(404);
   res.end();
 }).listen(PORT, () => {
-  process.stderr.write(`edge-grammar-memory  http://localhost:${PORT}\n`);
+  process.stderr.write(`edge-grammar-memory  https://localhost:${PORT}\n`);
 });
