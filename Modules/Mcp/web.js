@@ -191,6 +191,10 @@ http.createServer(async (req, res) => {
   }
 
   if (req.method === "GET" && url.pathname === "/auth/google") {
+    if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+      res.writeHead(500, { "Content-Type": "text/plain" });
+      return res.end("GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set in the environment before using Gemini Chat.\n\nCreate an OAuth 2.0 Client ID at https://console.cloud.google.com/apis/credentials and add http://localhost:7070/auth/callback as an authorized redirect URI.");
+    }
     res.writeHead(302, { Location: buildAuthUrl() });
     return res.end();
   }
