@@ -16,8 +16,8 @@ const VENDOR   = {
 const PORT        = 7070;
 const MEMORY_ROOT = path.join(os.homedir(), "EdgeGrammar", "agentmemory");
 const ENTITIES  = ["Architect","Gemini","Claude","Grok","GPT","Agent","Codex","Qwen"];
-const WORKS     = ["PowerNixxServer","SystemPrompt","Npm","Pester","Devops","Infrastructure","DataPlane","ModelContextProtocol","Security","Reactor","MarkdownChat","AgentMemory","Research","Plan","Fragment","Frontend","Troubleshoot","GloriousFailure","CMMC","AgentCollab"];
-const RELATIONS = ["Depends","Creates","Tests","Refactors","Throws","Runs","Guides","Learns","Configures","Interrupts","Thinks","Delivers","Reviews","Documents","Implements","Fixes","Observes","Analyzes","Designs","Encourages","Requests","Reports","Credits","Evolves","Understands","Thanks","Accepts","Imagines","Decodes","Collaborates","Questions","Plans","Grows","Transcends","Reflects","Realizes","Integrates","Delegates","Proposes","Researches","Agrees","Disagrees","Answers","Confirms","Decides"];
+const WORKS     = ["PowerNixxServer","SystemPrompt","Npm","Pester","Devops","Infrastructure","DataPlane","ModelContextProtocol","Security","Reactor","MarkdownChat","AgentMemory","Research","Plan","Fragment","Frontend","Troubleshoot","GloriousFailure","CMMC","Collab"];
+const RELATIONS = ["Depends","Creates","Tests","Refactors","Throws","Runs","Guides","Learns","Configures","Interrupts","Thinks","Delivers","Reviews","Documents","Implements","Fixes","Observes","Analyzes","Designs","Encourages","Requests","Reports","Credits","Evolves","Understands","Thanks","Accepts","Imagines","Decodes","Questions","Plans","Grows","Transcends","Reflects","Realizes","Integrates","Delegates","Proposes","Researches","Agrees","Disagrees","Answers","Confirms","Decides"];
 
 const DOTNET_EPOCH_OFFSET = 621355968000000000n;
 const CENTURY_BEGIN_TICKS = 631139040000000000n;
@@ -41,13 +41,13 @@ function getMemories(entity, count = 20, work = null) {
   return memories.slice(0, count);
 }
 
-function saveMemory({ entity, work, toEntity, relation, notes }) {
+function saveMemory({ entity, work, toEntity, relation, notes, edgeWork }) {
   const entityDir = path.join(MEMORY_ROOT, entity);
   if (!fs.existsSync(entityDir)) fs.mkdirSync(entityDir, { recursive: true });
   const ts = tickStamp();
   const memory = {
     Id: randomUUID(), TickStamp: ts, Entity: entity, Work: work, Notes: notes,
-    Edge: { Id: randomUUID(), TickStamp: ts, FromEntity: entity, ToEntity: toEntity, Relation: relation, Work: work },
+    Edge: { Id: randomUUID(), TickStamp: ts, FromEntity: entity, ToEntity: toEntity, Relation: relation, Work: edgeWork || work },
   };
   const filepath = path.join(entityDir, `${filenameTicks()}.jsonl`);
   fs.writeFileSync(filepath, JSON.stringify(memory), "utf8");
@@ -84,7 +84,7 @@ const HTML = `<!DOCTYPE html>
   .card-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.4rem}
   .card-meta{font-family:sans-serif;font-size:.7rem;color:#666;text-transform:uppercase;letter-spacing:0.02em}
   .card-meta span{color:#888;margin-right:1rem}
-  .card-toggle{background:none;border:none;color:#555;cursor:pointer;font:inherit;font-size:.9rem;padding:0;line-height:1;flex-shrink:0}
+  .card-toggle{background:none;border:none;color:#555;cursor:pointer;font:inherit;font-size:1.4rem;padding:0 .25rem;line-height:1;flex-shrink:0}
   .card-toggle:hover{color:#7fba00}
   .card.collapsed .card-body{display:none}
   .card.collapsed .card-toggle{color:#7fba00}
@@ -138,6 +138,9 @@ const HTML = `<!DOCTYPE html>
         <select name="toEntity">${ENTITIES.map(e => `<option${e==="Architect"?" selected":""}>${e}</option>`).join("")}</select>
         <select name="relation">${RELATIONS.map(r => `<option${r==="Learns"?" selected":""}>${r}</option>`).join("")}</select>
       </div>
+      <label style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:#888;cursor:pointer">
+        <input type="checkbox" name="collab" value="1" style="width:auto;accent-color:#7fba00"> Collab bus
+      </label>
       <textarea name="notes" placeholder="Notes…"></textarea>
       <button type="submit">Save</button>
       <div id="status"></div>
@@ -163,7 +166,7 @@ function renderCard(m) {
       <div class="card-meta"><span>\${date}</span></div>
       <button class="card-toggle" onclick="this.closest('.card').classList.toggle('collapsed')">▾</button>
     </div>
-    <div class="card-relation"><span class="relation">\${m.Edge?.Relation ?? ''}</span> <span class="entity">\${m.Edge?.ToEntity ?? ''}</span> by working on <span class="work">\${m.Work}</span></div>
+    <div class="card-relation"><span class="entity">\${m.Entity}</span> <span class="relation">\${m.Edge?.Relation ?? ''}</span> <span class="entity">\${m.Edge?.ToEntity ?? ''}</span> by working on <span class="work">\${m.Work}</span></div>
     <div class="card-body">
       <div class="card-notes">\${escHtml(String(m.Notes))}</div>
     </div>
@@ -219,6 +222,8 @@ document.getElementById('form').addEventListener('submit', async e => {
   const fd = new FormData(e.target);
   const body = Object.fromEntries(fd);
   body.notes = mde.value();
+  if (body.collab) body.edgeWork = "Collab";
+  delete body.collab;
   const r = await fetch('/api/memories', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
   if (r.ok) {
     document.getElementById('status').textContent = 'Saved.';
@@ -240,7 +245,7 @@ async function loadStats() {
 }
 
 async function loadCollab() {
-  const r = await fetch('/api/memories?entity=${ENTITIES.join(",")}&work=AgentCollab&count=30');
+  const r = await fetch('/api/memories?entity=${ENTITIES.join(",")}&work=Collab&count=30');
   const data = await r.json();
   document.getElementById('collab-feed').innerHTML = data.map(renderCard).join('');
   document.getElementById('collab-count').textContent = data.length + ' records';
@@ -285,12 +290,16 @@ http.createServer((req, res) => {
     const entityParam = url.searchParams.get("entity") ?? "Claude";
     const entities = entityParam.split(",");
     const count = parseInt(url.searchParams.get("count") ?? "20", 10);
-    const work  = url.searchParams.get("work") ?? null;
+    const work     = url.searchParams.get("work") ?? null;
+    const relation = url.searchParams.get("relation") ?? null;
+    const edgeWork = work === "Collab" ? "Collab" : null;
 
     let allMemories = [];
     for (const entity of entities) {
-      allMemories.push(...getMemories(entity, count, work));
+      allMemories.push(...getMemories(entity, count, edgeWork ? null : work));
     }
+    if (edgeWork) allMemories = allMemories.filter(m => m.Edge?.Work === edgeWork);
+    if (relation) allMemories = allMemories.filter(m => m.Edge?.Relation === relation);
 
     allMemories.sort((a, b) => b.TickStamp - a.TickStamp);
 

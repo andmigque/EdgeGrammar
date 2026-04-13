@@ -25,7 +25,6 @@ public enum WorkEnum
     Frontend,
     Troubleshoot,
     GloriousFailure,
-    CMMC,
-    AgentCollab
+    CMMC
 }
 

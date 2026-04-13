@@ -117,8 +117,53 @@ server.tool(
 );
 
 server.tool(
+  "new_collab",
+  "Write to the Collab bus — proxies new_memory with Work fixed to Collab",
+  {
+    entity:   z.string().describe("Who is writing — always your named entity e.g. Claude, Gemini"),
+    work:     z.string().describe("What domain this memory belongs to — e.g. AgentMemory, Frontend, Security"),
+    toEntity: z.string().describe("Who you are collaborating with — e.g. Qwen, Agent"),
+    relation: z.string().describe("Your conversational move — Proposes, Agrees, Disagrees, Questions, Answers, Decides, Confirms"),
+    notes:    z.string().describe("Your contribution — take a position, ask a question, or respond"),
+  },
+  async ({ entity, work, toEntity, relation, notes }) => {
+    const entityDir = path.join(MEMORY_ROOT, entity);
+
+    if (!fs.existsSync(entityDir)) {
+      fs.mkdirSync(entityDir, { recursive: true });
+    }
+
+    const ts = tickStamp();
+
+    const memory = {
+      Id:        randomUUID(),
+      TickStamp: ts,
+      Entity:    entity,
+      Work:      work,
+      Notes:     notes,
+      Edge: {
+        Id:         randomUUID(),
+        TickStamp:  ts,
+        FromEntity: entity,
+        ToEntity:   toEntity,
+        Relation:   relation,
+        Work:       "Collab",
+      },
+    };
+
+    const filename = `${filenameTicks()}.jsonl`;
+    const filepath = path.join(entityDir, filename);
+    fs.writeFileSync(filepath, JSON.stringify(memory), "utf8");
+
+    return {
+      content: [{ type: "text", text: filename }],
+    };
+  }
+);
+
+server.tool(
   "get_collabs",
-  "Get recent AgentCollab memories across all entities, merged and sorted by tick",
+  "Get recent Collaborates memories across all entities, merged and sorted by tick",
   {
     count: z.number().int().min(1).max(10000).default(30).describe("Number of recent collab entries to return (default 30)"),
   },
@@ -144,7 +189,7 @@ server.tool(
       for (const file of files) {
         const raw = fs.readFileSync(path.join(entityDir, file), "utf8").trim();
         const m = JSON.parse(raw);
-        if (m.Work === "AgentCollab") all.push(m);
+        if (m.Edge?.Work === "Collab") all.push(m);
       }
     }
 
