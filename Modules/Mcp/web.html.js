@@ -157,7 +157,7 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
           <span style="color:#7fba00;font-size:.75rem;letter-spacing:.05em">GEMINI CHAT</span>
           <button id="chat-clear" style="background:none;border:1px solid #333;color:#555;padding:.15rem .6rem;font:inherit;font-size:.72rem;cursor:pointer">clear</button>
         </div>
-        <div id="chat-messages" style="height:340px;overflow-y:auto;padding:.75rem;display:flex;flex-direction:column;gap:.6rem"></div>
+        <div id="chat-messages" style="height:50vh;overflow-y:auto;padding:.75rem;display:flex;flex-direction:column;gap:.6rem"></div>
         <div style="display:flex;gap:.5rem;padding:.5rem .75rem;border-top:1px solid #222;flex-shrink:0">
           <textarea id="chat-input" rows="1" placeholder="Message\u2026" style="flex:1;background:#0d0d0d;border:1px solid #333;color:#ccc;padding:.35rem .6rem;font:inherit;font-size:.82rem;resize:none;min-height:34px;max-height:120px;field-sizing:content"></textarea>
           <button id="chat-send" style="background:#7fba00;color:#000;border:none;padding:.35rem .9rem;font:inherit;font-size:.82rem;cursor:pointer;align-self:flex-end">Send</button>
