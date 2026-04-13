@@ -84,6 +84,10 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
         <label style="color:#888;cursor:pointer;display:flex;align-items:center">
           <input type="checkbox" id="show-graph" style="margin-right:0.3rem"> Graph
         </label>
+        <select id="filter-relation" style="background:#0d0d0d;border:1px solid #333;color:#888;padding:.25rem .5rem;font:inherit;font-size:.78rem;cursor:pointer">
+          <option value="">— relation —</option>
+          ${RELATIONS.map(r => `<option value="${r}">${r}</option>`).join("")}
+        </select>
       </div>
       <div id="graph-panel" style="display:none;position:relative;width:100%;height:480px;background:#141414;border:1px solid #222;margin-bottom:.7rem;cursor:crosshair">
         <svg id="graph-svg" style="width:100%;height:100%;display:block"></svg>
@@ -147,7 +151,10 @@ async function loadCombined() {
   const entityList = Array.from(selectedEntities).join(',');
   if (!entityList) return;
   const limit = document.getElementById('combined-limit').value || 30;
-  const r = await fetch('/api/memories?entity=' + entityList + '&count=' + limit);
+  const relation = document.getElementById('filter-relation').value;
+  let url = '/api/memories?entity=' + entityList + '&count=' + limit;
+  if (relation) url += '&relation=' + encodeURIComponent(relation);
+  const r = await fetch(url);
   const data = await r.json();
   const feed = document.getElementById('combined-feed');
   feed.innerHTML = data.map(renderCard).join('');
@@ -158,6 +165,7 @@ document.getElementById('hide-records').addEventListener('change', e => {
 });
 
 document.getElementById('combined-limit').addEventListener('change', loadCombined);
+document.getElementById('filter-relation').addEventListener('change', loadCombined);
 
 document.getElementById('tabs').addEventListener('click', e => {
   if (!e.target.dataset.entity) return;
