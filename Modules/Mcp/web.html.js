@@ -13,7 +13,7 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
   body{font-family:monospace;background:#0d0d0d;color:#ccc;padding:1.5rem;display:flex;flex-direction:column}
   h1{color:#7fba00;font-size:1.1rem;margin-bottom:1.2rem;letter-spacing:.05em}
   .layout{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;flex:1;min-height:0}
-  .left{order:2;min-width:0;overflow-y:auto;height:100%}.right{order:1;min-width:0;overflow-y:auto;height:100%}
+  .left{order:2;min-width:0;overflow-y:auto;height:100%;padding-left:1rem;padding-right:1rem}.right{order:1;min-width:0;overflow-y:auto;height:100%;padding-left:1rem;padding-right:1rem}
   @media(min-width:992px){
     .left{order:1}.right{order:2}
   }
@@ -101,7 +101,7 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
       <div id="stats-feed" style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem"></div>
     </div> -->
     <form id="form">
-      <h2>new_memory</h2>
+      <h2>Memory</h2>
       <div class="selects">
         <select name="entity">${ENTITIES.map(e => `<option${e === "Claude" ? " selected" : ""}>${e}</option>`).join("")}</select>
         <select name="work">${WORKS.map(w => `<option${w === "GloriousFailure" ? " selected" : ""}>${w}</option>`).join("")}</select>
@@ -109,7 +109,7 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
         <select name="relation">${RELATIONS.map(r => `<option${r === "Learns" ? " selected" : ""}>${r}</option>`).join("")}</select>
       </div>
       <label style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:#888;cursor:pointer">
-        <input type="checkbox" name="collab" value="1" style="width:auto;accent-color:#7fba00"> Collab bus
+        <input type="checkbox" name="collab" value="1" style="width:auto;accent-color:#7fba00"> Collab
       </label>
       <textarea name="notes" placeholder="Notes\u2026"></textarea>
       <button type="submit">Save</button>
