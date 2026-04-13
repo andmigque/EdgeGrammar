@@ -147,6 +147,7 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
           ${RELATIONS.map(r => `<option value="${r}">${r}</option>`).join("")}
         </select>
         <button class="btn-save" id="btn-save">Save</button>
+        <button class="btn-save" id="btn-clear-all">Clear</button>
       </div>
       <div id="graph-panel" style="display:none;position:relative;width:100%;height:480px;background:#141414;border:1px solid #222;margin-bottom:.7rem;cursor:crosshair">
         <svg id="graph-svg" style="width:100%;height:100%;display:block"></svg>
@@ -434,6 +435,13 @@ function showJSON(id) {
   document.getElementById('json-pre').textContent = JSON.stringify(m, null, 2);
   document.getElementById('json-overlay').classList.add('open');
 }
+
+function showStateJSON(ts) {
+  const s = getSavedStates().find(function(x) { return x.ts === ts; });
+  if (!s) return;
+  document.getElementById('json-pre').textContent = JSON.stringify(s, null, 2);
+  document.getElementById('json-overlay').classList.add('open');
+}
 function closeJSON() {
   document.getElementById('json-overlay').classList.remove('open');
 }
@@ -452,26 +460,29 @@ function getState() {
     limit:    document.getElementById('combined-limit').value,
     relation: document.getElementById('filter-relation').value,
     graph:    document.getElementById('show-graph').checked,
+    chat:     chatHistory,
   };
 }
 
-function applyState(s) {
+function clearAll() {
+  // config
   selectedEntities.clear();
+  selectedEntities.add('Architect');
   document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
-  (s.entities || []).forEach(function(e) {
-    selectedEntities.add(e);
-    const tab = document.querySelector('.tab[data-entity="' + e + '"]');
-    if (tab) tab.classList.add('active');
-  });
-  if (s.limit) document.getElementById('combined-limit').value = s.limit;
-  if (s.relation !== undefined) document.getElementById('filter-relation').value = s.relation;
-  const graphCb = document.getElementById('show-graph');
-  const graphPanel = document.getElementById('graph-panel');
-  graphCb.checked = !!s.graph;
-  graphPanel.style.display = s.graph ? 'block' : 'none';
+  const firstTab = document.querySelector('.tab[data-entity="Architect"]');
+  if (firstTab) firstTab.classList.add('active');
+  document.getElementById('combined-limit').value = 30;
+  document.getElementById('filter-relation').value = '';
+  document.getElementById('show-graph').checked = false;
+  document.getElementById('graph-panel').style.display = 'none';
+  // chat
+  chatHistory = [];
+  localStorage.removeItem('eg-chat');
+  document.getElementById('chat-messages').innerHTML = '';
   loadCombined();
-  if (s.graph) { if (graphCache.entities.length === 0) loadGraph(); else renderGraph(); }
 }
+
+document.getElementById('btn-clear-all').addEventListener('click', clearAll);
 
 function getSavedStates() {
   try { return JSON.parse(localStorage.getItem('eg-states') || '[]'); }
@@ -486,8 +497,7 @@ function renderSavedStates() {
     return;
   }
   body.innerHTML = states.map(function(s) {
-    const stateJson = JSON.stringify(s.state).replace(/"/g, '&quot;');
-    return '<div class="state-item" onclick="applyState(' + stateJson + ');closeSidebar()">' +
+    return '<div class="state-item" onclick="showStateJSON(' + s.ts + ')">' +
       '<div><div class="state-name">' + escHtml(s.name) + '</div>' +
       '<div class="state-ts">' + new Date(s.ts).toLocaleString() + '</div></div>' +
       '<button class="state-del" onclick="event.stopPropagation();deleteSavedState(' + s.ts + ')" title="Delete">&#215;</button>' +
@@ -584,6 +594,7 @@ async function chatSend() {
   }
   cursor.remove();
   if (accumulated) chatHistory.push({ role: 'model', content: accumulated });
+  localStorage.setItem('eg-chat', JSON.stringify(chatHistory));
   chatStreaming = false;
   sendBtn.disabled = false;
 }
