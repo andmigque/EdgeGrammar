@@ -224,6 +224,18 @@ function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(
 
 const selectedEntities = new Set(["Architect"]);
 
+function saveCurrentState() {
+  const state = {
+    entities: Array.from(selectedEntities),
+    limit:    document.getElementById('combined-limit').value,
+    relation: document.getElementById('filter-relation').value,
+    graph:    document.getElementById('show-graph').checked,
+    chat:     document.getElementById('show-chat').checked,
+    hide:     document.getElementById('hide-records').checked,
+  };
+  localStorage.setItem('eg-current', JSON.stringify(state));
+}
+
 async function loadCombined() {
   const entityList = Array.from(selectedEntities).join(',');
   if (!entityList) return;
@@ -239,10 +251,11 @@ async function loadCombined() {
 
 document.getElementById('hide-records').addEventListener('change', e => {
   document.getElementById('combined-feed').style.display = e.target.checked ? 'none' : 'block';
+  saveCurrentState();
 });
 
-document.getElementById('combined-limit').addEventListener('change', loadCombined);
-document.getElementById('filter-relation').addEventListener('change', loadCombined);
+document.getElementById('combined-limit').addEventListener('change', function() { loadCombined(); saveCurrentState(); });
+document.getElementById('filter-relation').addEventListener('change', function() { loadCombined(); saveCurrentState(); });
 
 document.getElementById('tabs').addEventListener('click', e => {
   if (!e.target.dataset.entity) return;
@@ -262,6 +275,7 @@ document.getElementById('tabs').addEventListener('click', e => {
     e.target.classList.add('active');
   }
   loadCombined();
+  saveCurrentState();
 });
 
 const mde = new EasyMDE({
@@ -407,6 +421,7 @@ document.getElementById('show-graph').addEventListener('change', async function(
       renderGraph();
     }
   }
+  saveCurrentState();
 });
 
 document.getElementById('graph-panel').addEventListener('click', function() {
@@ -478,6 +493,7 @@ function clearAll() {
   // chat
   chatHistory = [];
   localStorage.removeItem('eg-chat');
+  localStorage.removeItem('eg-current');
   document.getElementById('chat-messages').innerHTML = '';
   loadCombined();
 }
@@ -595,6 +611,20 @@ async function chatSend() {
   cursor.remove();
   if (accumulated) chatHistory.push({ role: 'model', content: accumulated });
   localStorage.setItem('eg-chat', JSON.stringify(chatHistory));
+  if (accumulated) {
+    fetch('/api/memories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        entity:   'Architect',
+        work:     'Collab',
+        toEntity: 'Agent',
+        relation: 'Documents',
+        notes:    'Q: ' + text + '\\n\\nA: ' + accumulated,
+        edgeWork: 'Collab',
+      })
+    });
+  }
   chatStreaming = false;
   sendBtn.disabled = false;
 }
@@ -603,6 +633,7 @@ document.getElementById('show-chat').addEventListener('change', function(e) {
   const panel = document.getElementById('chat-panel');
   panel.style.display = e.target.checked ? 'flex' : 'none';
   if (e.target.checked) document.getElementById('chat-input').focus();
+  saveCurrentState();
 });
 
 document.getElementById('chat-send').addEventListener('click', chatSend);
@@ -618,8 +649,50 @@ document.getElementById('chat-clear').addEventListener('click', function() {
 
 document.addEventListener('DOMContentLoaded', () => {
   loadStats();
-  loadCombined();
   loadCollab();
+
+  // Restore config state
+  try {
+    const cur = JSON.parse(localStorage.getItem('eg-current') || 'null');
+    if (cur) {
+      if (cur.entities && cur.entities.length) {
+        selectedEntities.clear();
+        cur.entities.forEach(function(e) { selectedEntities.add(e); });
+        document.querySelectorAll('.tab').forEach(function(t) {
+          t.classList.toggle('active', selectedEntities.has(t.dataset.entity));
+        });
+      }
+      if (cur.limit) document.getElementById('combined-limit').value = cur.limit;
+      if (cur.relation !== undefined) document.getElementById('filter-relation').value = cur.relation;
+      if (cur.hide) {
+        document.getElementById('hide-records').checked = true;
+        document.getElementById('combined-feed').style.display = 'none';
+      }
+      if (cur.chat) {
+        document.getElementById('show-chat').checked = true;
+        document.getElementById('chat-panel').style.display = 'flex';
+      }
+      if (cur.graph) {
+        document.getElementById('show-graph').checked = true;
+        document.getElementById('graph-panel').style.display = 'block';
+        loadGraph();
+      }
+    }
+  } catch(_) {}
+
+  loadCombined();
+
+  // Restore chat history
+  try {
+    const saved = JSON.parse(localStorage.getItem('eg-chat') || '[]');
+    if (saved.length) {
+      chatHistory = saved;
+      saved.forEach(function(m) {
+        if (m.role === 'user') chatAppend('user', m.content);
+        else if (m.role === 'model') chatAppend('assistant', m.content);
+      });
+    }
+  } catch(_) {}
 });
 </script>
 </body>
