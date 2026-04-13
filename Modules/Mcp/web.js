@@ -6,6 +6,7 @@ import os from "os";
 import { randomUUID } from "crypto";
 import { createRequire } from "module";
 import { buildHTML } from "./web.html.js";
+import { buildChatHTML } from "./web.chat.js";
 
 const require  = createRequire(import.meta.url);
 const EASYMDE  = path.dirname(require.resolve("easymde/dist/easymde.min.js"));
@@ -16,6 +17,8 @@ const VENDOR   = {
 
 const PORT        = 7070;
 const MEMORY_ROOT = path.join(os.homedir(), "EdgeGrammar", "agentmemory");
+const GEMINI_KEY  = process.env.GEMINI_API_KEY ?? "";
+const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-2.0-flash";
 const ENTITIES  = ["Architect","Gemini","Claude","Grok","GPT","Agent","Codex","Qwen"];
 const WORKS     = ["PowerNixxServer","SystemPrompt","Npm","Pester","Devops","Infrastructure","DataPlane","ModelContextProtocol","Security","Reactor","MarkdownChat","AgentMemory","Research","Plan","Fragment","Frontend","Troubleshoot","GloriousFailure","CMMC","Collab"];
 const RELATIONS = ["Depends","Creates","Tests","Refactors","Throws","Runs","Guides","Learns","Configures","Interrupts","Thinks","Delivers","Reviews","Documents","Implements","Fixes","Observes","Analyzes","Designs","Encourages","Requests","Reports","Evolves","Understands","Accepts","Imagines","Decodes","Questions","Plans","Grows","Transcends","Reflects","Realizes","Integrates","Delegates","Proposes","Researches","Agrees","Disagrees","Answers","Confirms","Decides"];
@@ -55,7 +58,8 @@ function saveMemory({ entity, work, toEntity, relation, notes, edgeWork }) {
   return memory;
 }
 
-const HTML = buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOTNET_EPOCH_OFFSET });
+const HTML      = buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOTNET_EPOCH_OFFSET });
+const CHAT_HTML = buildChatHTML({ MODEL: GEMINI_MODEL });
 
 http.createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
@@ -114,6 +118,51 @@ http.createServer((req, res) => {
         res.end(JSON.stringify(memory));
       } catch (err) {
         res.writeHead(400, { "Content-Type": "text/plain" });
+        res.end(err.message);
+      }
+    });
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/chat") {
+    res.writeHead(200, { "Content-Type": "text/html" });
+    return res.end(CHAT_HTML);
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/chat") {
+    let body = "";
+    req.on("data", d => body += d);
+    req.on("end", async () => {
+      try {
+        const { message, history = [] } = JSON.parse(body);
+        const contents = [
+          ...history.map(h => ({ role: h.role, parts: [{ text: h.content }] })),
+          { role: "user", parts: [{ text: message }] },
+        ];
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${GEMINI_KEY}`;
+        const apiRes = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents }),
+        });
+        if (!apiRes.ok) {
+          const err = await apiRes.text();
+          res.writeHead(apiRes.status, { "Content-Type": "text/plain" });
+          return res.end(err);
+        }
+        res.writeHead(200, {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          "Connection": "keep-alive",
+        });
+        for await (const chunk of apiRes.body) {
+          res.write(chunk);
+        }
+        res.end();
+      } catch (err) {
+        if (!res.headersSent) {
+          res.writeHead(400, { "Content-Type": "text/plain" });
+        }
         res.end(err.message);
       }
     });
