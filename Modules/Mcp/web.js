@@ -17,7 +17,7 @@ const VENDOR   = {
 
 const PORT        = 7070;
 const MEMORY_ROOT = path.join(os.homedir(), "EdgeGrammar", "agentmemory");
-const GEMINI_MODEL        = process.env.GEMINI_MODEL        ?? "gemini-2.0-flash";
+const GEMINI_MODEL        = process.env.GEMINI_MODEL        ?? "gemini-3-flash-preview";
 const GEMINI_KEY          = process.env.GEMINI_API_KEY       ?? "";
 const GOOGLE_CLIENT_ID    = process.env.GOOGLE_CLIENT_ID    ?? "";
 const GOOGLE_CLIENT_SECRET= process.env.GOOGLE_CLIENT_SECRET?? "";
