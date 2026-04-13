@@ -73,7 +73,12 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
     <div class="tabs" id="tabs">
       ${ENTITIES.map((e, i) => `<button class="tab${i === 0 ? " active" : ""}" data-entity="${e}">${e}</button>`).join("\n      ")}
     </div>
-    <div class="panel active" id="panel-combined"><div class="count" id="combined-count"></div><div id="combined-feed"></div></div>
+    <div class="panel active" id="panel-combined">
+      <div class="count">
+        Show: <input type="number" id="combined-limit" value="30" style="width:50px;padding:2px 4px;margin-bottom:0.5rem"> records
+      </div>
+      <div id="combined-feed"></div>
+    </div>
   </div>
   <div class="right">
     <!-- <div id="stats" style="background:#141414;border:1px solid #333;padding:1rem;margin-bottom:1rem;font-size:.75rem">
@@ -130,12 +135,14 @@ const selectedEntities = new Set(["Architect"]);
 async function loadCombined() {
   const entityList = Array.from(selectedEntities).join(',');
   if (!entityList) return;
-  const r = await fetch('/api/memories?entity=' + entityList + '&count=30');
+  const limit = document.getElementById('combined-limit').value || 30;
+  const r = await fetch('/api/memories?entity=' + entityList + '&count=' + limit);
   const data = await r.json();
   const feed = document.getElementById('combined-feed');
   feed.innerHTML = data.map(renderCard).join('');
-  document.getElementById('combined-count').textContent = data.length + ' records';
 }
+
+document.getElementById('combined-limit').addEventListener('change', loadCombined);
 
 document.getElementById('tabs').addEventListener('click', e => {
   if (!e.target.dataset.entity) return;
