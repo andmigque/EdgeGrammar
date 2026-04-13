@@ -60,6 +60,11 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
   .CodeMirror-cursor{border-left:2px solid #ccc !important}
   .editor-preview{background:#111;color:#ccc;font-family:monospace;font-size:.82rem}
   .editor-statusbar{display:none}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:#0d0d0d}
+  ::-webkit-scrollbar-thumb{background:#333;border-radius:4px}
+  ::-webkit-scrollbar-thumb:hover{background:#7fba00}
+  * {scrollbar-width:thin;scrollbar-color:#333 #0d0d0d}
 </style>
 </head>
 <body>
@@ -71,10 +76,10 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
     <div class="panel active" id="panel-combined"><div class="count" id="combined-count"></div><div id="combined-feed"></div></div>
   </div>
   <div class="right">
-    <div id="stats" style="background:#141414;border:1px solid #333;padding:1rem;margin-bottom:1rem;font-size:.75rem">
+    <!-- <div id="stats" style="background:#141414;border:1px solid #333;padding:1rem;margin-bottom:1rem;font-size:.75rem">
       <h2 style="color:#7fba00;margin-bottom:.5rem;font-size:.85rem">Relation Pulse</h2>
       <div id="stats-feed" style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem"></div>
-    </div>
+    </div> -->
     <form id="form">
       <h2>new_memory</h2>
       <div class="selects">
