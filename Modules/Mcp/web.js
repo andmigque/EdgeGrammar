@@ -127,7 +127,7 @@ async function getValidToken(sid) {
 const HTML      = buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOTNET_EPOCH_OFFSET });
 const CHAT_HTML = buildChatHTML({ MODEL: GEMINI_MODEL });
 
-http.createServer((req, res) => {
+http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
 
   const vendor = VENDOR[url.pathname];
