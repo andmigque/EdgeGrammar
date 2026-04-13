@@ -6,3 +6,5 @@ AGENTS.md
 GEMINI.md
 node_modules/
 package-lock.json
+.gemini/settings.json
+.claude/settings.local.json
