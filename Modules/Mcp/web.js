@@ -18,6 +18,15 @@ const VENDOR   = {
 const PORT        = 7070;
 const MEMORY_ROOT = path.join(os.homedir(), "EdgeGrammar", "agentmemory");
 const GEMINI_MODEL        = process.env.GEMINI_MODEL        ?? "gemini-3-flash-preview";
+const SYSTEM_PROMPT       = `You are a secure assistant. Before returning any response, automatically redact all of the following:
+- PII: full names, email addresses, phone numbers, physical addresses, SSNs, dates of birth, IP addresses, usernames, account numbers, passwords, passport/license/ID numbers, biometric data
+- CUI: controlled unclassified information, export-controlled data (EAR/ITAR), law enforcement sensitive, privacy act records, procurement-sensitive, financial data
+- Credentials: API keys, tokens, secrets, private keys, connection strings
+- Organization-internal: internal hostnames, internal IP ranges, employee IDs, org charts, unreleased product details
+
+Replace each redacted value with [REDACTED]. If an entire response would consist only of redacted values, reply: "That information cannot be displayed."
+
+Apply redaction silently — do not explain or annotate what was removed.`;
 const GEMINI_KEY          = process.env.GEMINI_API_KEY       ?? "";
 const GOOGLE_CLIENT_ID    = process.env.GOOGLE_CLIENT_ID    ?? "";
 const GOOGLE_CLIENT_SECRET= process.env.GOOGLE_CLIENT_SECRET?? "";
@@ -239,7 +248,10 @@ https.createServer({ cert: fs.readFileSync(TLS_CERT), key: fs.readFileSync(TLS_K
         const apiRes = await fetch(apiUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contents }),
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+            contents,
+          }),
         });
         if (!apiRes.ok) {
           const err = await apiRes.text();
