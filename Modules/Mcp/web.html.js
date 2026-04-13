@@ -103,10 +103,10 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
     <form id="form">
       <h2>Memory</h2>
       <div class="selects">
-        <select name="entity">${ENTITIES.map(e => `<option${e === "Claude" ? " selected" : ""}>${e}</option>`).join("")}</select>
-        <select name="work">${WORKS.map(w => `<option${w === "GloriousFailure" ? " selected" : ""}>${w}</option>`).join("")}</select>
-        <select name="toEntity">${ENTITIES.map(e => `<option${e === "Architect" ? " selected" : ""}>${e}</option>`).join("")}</select>
-        <select name="relation">${RELATIONS.map(r => `<option${r === "Learns" ? " selected" : ""}>${r}</option>`).join("")}</select>
+        <select name="entity">${ENTITIES.map(e => `<option${e === "Architect" ? " selected" : ""}>${e}</option>`).join("")}</select>
+        <select name="work">${WORKS.map(w => `<option${w === "Collab" ? " selected" : ""}>${w}</option>`).join("")}</select>
+        <select name="toEntity">${ENTITIES.map(e => `<option${e === "Agent" ? " selected" : ""}>${e}</option>`).join("")}</select>
+        <select name="relation">${RELATIONS.map(r => `<option${r === "Decides" ? " selected" : ""}>${r}</option>`).join("")}</select>
       </div>
       <label style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:#888;cursor:pointer">
         <input type="checkbox" name="collab" value="1" style="width:auto;accent-color:#7fba00"> Collab
