@@ -15,9 +15,9 @@ const VENDOR   = {
 
 const PORT        = 7070;
 const MEMORY_ROOT = path.join(os.homedir(), "EdgeGrammar", "agentmemory");
-const ENTITIES  = ["Architect","Gemini","Claude","Grok","GPT","Human","Self","System","Agent","Codex","Qwen"];
-const WORKS     = ["PowerNixxServer","SystemPrompt","Npm","Pester","Devops","Infrastructure","DataPlane","ModelContextProtocol","Security","Reactor","MarkdownChat","AgentMemory","Research","Plan","Fragment","Frontend","Troubleshoot","GloriousFailure","CMMC"];
-const RELATIONS = ["Depends","Creates","Tests","Refactors","Throws","Runs","Guides","Learns","Configures","Interrupts","Thinks","Delivers","Reviews","Documents","Implements","Fixes","Observes","Analyzes","Designs","Encourages","Requests","Reports","Credits","Evolves","Understands","Thanks","Accepts","Imagines","Decodes","Collaborates","Questions","Plans","Grows","Transcends","Reflects","Realizes","Integrates","Delegates","Proposes","Researches"];
+const ENTITIES  = ["Architect","Gemini","Claude","Grok","GPT","Agent","Codex","Qwen"];
+const WORKS     = ["PowerNixxServer","SystemPrompt","Npm","Pester","Devops","Infrastructure","DataPlane","ModelContextProtocol","Security","Reactor","MarkdownChat","AgentMemory","Research","Plan","Fragment","Frontend","Troubleshoot","GloriousFailure","CMMC","AgentCollab"];
+const RELATIONS = ["Depends","Creates","Tests","Refactors","Throws","Runs","Guides","Learns","Configures","Interrupts","Thinks","Delivers","Reviews","Documents","Implements","Fixes","Observes","Analyzes","Designs","Encourages","Requests","Reports","Credits","Evolves","Understands","Thanks","Accepts","Imagines","Decodes","Collaborates","Questions","Plans","Grows","Transcends","Reflects","Realizes","Integrates","Delegates","Proposes","Researches","Agrees","Disagrees","Answers","Confirms","Decides"];
 
 const DOTNET_EPOCH_OFFSET = 621355968000000000n;
 const CENTURY_BEGIN_TICKS = 631139040000000000n;
@@ -30,13 +30,15 @@ function filenameTicks() {
   return (BigInt(Date.now()) * 10000n + DOTNET_EPOCH_OFFSET).toString();
 }
 
-function getMemories(entity, count = 20) {
+function getMemories(entity, count = 20, work = null) {
   const entityDir = path.join(MEMORY_ROOT, entity);
   if (!fs.existsSync(entityDir)) return [];
-  return fs.readdirSync(entityDir)
+  let memories = fs.readdirSync(entityDir)
     .filter(f => f.endsWith(".jsonl"))
-    .sort().reverse().slice(0, count)
+    .sort().reverse()
     .map(f => JSON.parse(fs.readFileSync(path.join(entityDir, f), "utf8").trim()));
+  if (work) memories = memories.filter(m => m.Work === work);
+  return memories.slice(0, count);
 }
 
 function saveMemory({ entity, work, toEntity, relation, notes }) {
@@ -62,30 +64,36 @@ const HTML = `<!DOCTYPE html>
 <script src="/vendor/easymde.min.js"></script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:monospace;background:#0d0d0d;color:#ccc;padding:1.5rem}
+  html,body{height:100%}
+  body{font-family:monospace;background:#0d0d0d;color:#ccc;padding:1.5rem;display:flex;flex-direction:column}
   h1{color:#7fba00;font-size:1.1rem;margin-bottom:1.2rem;letter-spacing:.05em}
-  .layout{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start}
-  .left{order:2;min-width:0}.right{order:1;min-width:0}
+  .layout{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;flex:1;min-height:0}
+  .left{order:2;min-width:0;overflow-y:auto;height:100%}.right{order:1;min-width:0;overflow-y:auto;height:100%}
   @media(min-width:992px){
     .left{order:1}.right{order:2}
   }
   @media(max-width:991px){
-    .layout{grid-template-columns:1fr}
+    .layout{grid-template-columns:1fr;height:auto}
+    .left,.right{height:auto;overflow-y:visible}
   }
   .tabs{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.2rem}
   .tab{background:#1a1a1a;border:1px solid #333;color:#888;padding:.35rem .9rem;cursor:pointer;font:inherit;font-size:.85rem}
   .tab.active{border-color:#7fba00;color:#7fba00}
   .panel{display:none}.panel.active{display:block}
   .card{background:#141414;border:1px solid #222;padding:.9rem 1rem;margin-bottom:.7rem;border-radius:2px}
-  .card-meta{font-family:sans-serif;font-size:.7rem;color:#666;margin-bottom:.4rem;text-transform:uppercase;letter-spacing:0.02em}
+  .card-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.4rem}
+  .card-meta{font-family:sans-serif;font-size:.7rem;color:#666;text-transform:uppercase;letter-spacing:0.02em}
   .card-meta span{color:#888;margin-right:1rem}
+  .card-toggle{background:none;border:none;color:#555;cursor:pointer;font:inherit;font-size:.9rem;padding:0;line-height:1;flex-shrink:0}
+  .card-toggle:hover{color:#7fba00}
+  .card.collapsed .card-body{display:none}
+  .card.collapsed .card-toggle{color:#7fba00}
   .card-notes{font-size:.82rem;color:#bbb;white-space:pre-wrap;line-height:1.5}
   .card-relation{font-size:.75rem;color:#666;margin-bottom:.5rem}
   .card-relation span.relation{color:#7fba00}
   .card-relation span.entity{color:#90c520}
   .card-relation span.work{color:#a0d020}
   form{background:#141414;border:1px solid #333;padding:0.7rem;display:grid;gap:.7rem}
-  @media(min-width:992px){form{position:sticky;top:1.5rem}}
   form h2{font-size:.85rem;color:#7fba00;margin-bottom:.4rem}
   .selects{display:flex;flex-wrap:wrap;gap:.5rem}
   .selects select{flex:1 1 120px;min-width:0;width:0}
@@ -134,6 +142,11 @@ const HTML = `<!DOCTYPE html>
       <button type="submit">Save</button>
       <div id="status"></div>
     </form>
+    <div id="collab" style="background:#141414;border:1px solid #333;padding:1rem;margin-top:1rem">
+      <h2 style="color:#7fba00;margin-bottom:.5rem;font-size:.85rem">AgentCollab</h2>
+      <div class="count" id="collab-count"></div>
+      <div id="collab-feed"></div>
+    </div>
   </div>
 </div>
 
@@ -145,10 +158,15 @@ function renderCard(m) {
     Math.round(Number(BigInt(m.TickStamp) + ${CENTURY_BEGIN_TICKS.toString()}n) / 10000)
     - ${Number(DOTNET_EPOCH_OFFSET / 10000n)}
   ).toLocaleString();
-  return \`<div class="card">
-    <div class="card-meta"><span>\${date}</span></div>
+  return \`<div class="card collapsed">
+    <div class="card-header">
+      <div class="card-meta"><span>\${date}</span></div>
+      <button class="card-toggle" onclick="this.closest('.card').classList.toggle('collapsed')">▾</button>
+    </div>
     <div class="card-relation"><span class="relation">\${m.Edge?.Relation ?? ''}</span> <span class="entity">\${m.Edge?.ToEntity ?? ''}</span> by working on <span class="work">\${m.Work}</span></div>
-    <div class="card-notes">\${escHtml(String(m.Notes))}</div>
+    <div class="card-body">
+      <div class="card-notes">\${escHtml(String(m.Notes))}</div>
+    </div>
   </div>\`;
 }
 
@@ -206,6 +224,7 @@ document.getElementById('form').addEventListener('submit', async e => {
     document.getElementById('status').textContent = 'Saved.';
     mde.value('');
     await loadCombined();
+    await loadCollab();
   } else {
     document.getElementById('status').textContent = 'Error: ' + r.status;
   }
@@ -220,9 +239,17 @@ async function loadStats() {
     .join('');
 }
 
+async function loadCollab() {
+  const r = await fetch('/api/memories?entity=${ENTITIES.join(",")}&work=AgentCollab&count=30');
+  const data = await r.json();
+  document.getElementById('collab-feed').innerHTML = data.map(renderCard).join('');
+  document.getElementById('collab-count').textContent = data.length + ' records';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   loadStats();
   loadCombined();
+  loadCollab();
 });
 </script>
 </body>
@@ -258,10 +285,11 @@ http.createServer((req, res) => {
     const entityParam = url.searchParams.get("entity") ?? "Claude";
     const entities = entityParam.split(",");
     const count = parseInt(url.searchParams.get("count") ?? "20", 10);
+    const work  = url.searchParams.get("work") ?? null;
 
     let allMemories = [];
     for (const entity of entities) {
-      allMemories.push(...getMemories(entity, count));
+      allMemories.push(...getMemories(entity, count, work));
     }
 
     allMemories.sort((a, b) => b.TickStamp - a.TickStamp);

@@ -33,8 +33,9 @@ server.tool(
   {
     entity: z.string().describe("Entity name — Claude, Architect, or Gemini"),
     count:  z.number().int().min(1).max(10000).default(10).describe("Number of recent memories to return (default 10)"),
+    work:   z.string().optional().describe("Filter by work domain — e.g. AgentCollab, Plan, GloriousFailure"),
   },
-  async ({ entity, count }) => {
+  async ({ entity, count, work }) => {
     const entityDir = path.join(MEMORY_ROOT, entity);
 
     if (!fs.existsSync(entityDir)) {
@@ -47,8 +48,7 @@ server.tool(
     const files = fs.readdirSync(entityDir)
       .filter(f => f.endsWith(".jsonl"))
       .sort()
-      .reverse()
-      .slice(0, count);
+      .reverse();
 
     if (files.length === 0) {
       return {
@@ -56,13 +56,17 @@ server.tool(
       };
     }
 
-    const memories = files.map(file => {
+    let memories = files.map(file => {
       const raw = fs.readFileSync(path.join(entityDir, file), "utf8").trim();
       return JSON.parse(raw);
     });
 
+    if (work) {
+      memories = memories.filter(m => m.Work === work);
+    }
+
     return {
-      content: [{ type: "text", text: JSON.stringify(memories, null, 2) }],
+      content: [{ type: "text", text: JSON.stringify(memories.slice(0, count), null, 2) }],
     };
   }
 );
@@ -108,6 +112,46 @@ server.tool(
 
     return {
       content: [{ type: "text", text: filename }],
+    };
+  }
+);
+
+server.tool(
+  "get_collabs",
+  "Get recent AgentCollab memories across all entities, merged and sorted by tick",
+  {
+    count: z.number().int().min(1).max(10000).default(30).describe("Number of recent collab entries to return (default 30)"),
+  },
+  async ({ count }) => {
+    if (!fs.existsSync(MEMORY_ROOT)) {
+      return {
+        content: [{ type: "text", text: "No memory root found." }],
+        isError: true,
+      };
+    }
+
+    const entities = fs.readdirSync(MEMORY_ROOT, { withFileTypes: true })
+      .filter(d => d.isDirectory())
+      .map(d => d.name);
+
+    let all = [];
+    for (const entity of entities) {
+      const entityDir = path.join(MEMORY_ROOT, entity);
+      const files = fs.readdirSync(entityDir)
+        .filter(f => f.endsWith(".jsonl"))
+        .sort()
+        .reverse();
+      for (const file of files) {
+        const raw = fs.readFileSync(path.join(entityDir, file), "utf8").trim();
+        const m = JSON.parse(raw);
+        if (m.Work === "AgentCollab") all.push(m);
+      }
+    }
+
+    all.sort((a, b) => b.TickStamp - a.TickStamp);
+
+    return {
+      content: [{ type: "text", text: JSON.stringify(all.slice(0, count), null, 2) }],
     };
   }
 );
