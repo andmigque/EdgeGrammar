@@ -8,7 +8,7 @@ schema: 2.0.0
 # Get-MemoryByEntity
 
 ## SYNOPSIS
-{{ Fill in the Synopsis }}
+Gets recent memory records for a single entity.
 
 ## SYNTAX
 
@@ -18,33 +18,24 @@ Get-MemoryByEntity [[-Entity] <EntityEnum>] [[-Count] <Int32>] [-ProgressAction 
 ```
 
 ## DESCRIPTION
-{{ Fill in the Description }}
+Reads the newest saved memory files for the specified entity, deserializes each JSON payload,
+and returns up to the requested count in newest-first order.
 
 ## EXAMPLES
 
-### Example 1
-```powershell
-PS C:\> {{ Add example code here }}
+### EXAMPLE 1
+```
+Get-MemoryByEntity -Entity Claude -Count 5
+Returns the five most recent memory entries written by Claude.
 ```
 
-{{ Add example description here }}
+### EXAMPLE 2
+```
+[EdgeGrammar.Modules.Dto.EntityEnum]::Claude | Get-MemoryByEntity -Count 5
+Demonstrates pipeline input when the entity value is already available as an enum.
+```
 
 ## PARAMETERS
-
-### -Count
-How many recent entries you want back.
-
-```yaml
-Type: System.Int32
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 1
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
 
 ### -Entity
 Which entity's memories to retrieve.
@@ -56,9 +47,24 @@ Aliases:
 Accepted values: Architect, Gemini, Claude, Grok, GPT, Human, Self, System, Agent, Codex
 
 Required: False
-Position: 0
+Position: 1
 Default value: None
 Accept pipeline input: True (ByValue)
+Accept wildcard characters: False
+```
+
+### -Count
+How many recent entries you want back.
+
+```yaml
+Type: System.Int32
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 2
+Default value: 10
+Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
@@ -83,7 +89,6 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ## INPUTS
 
 ### EdgeGrammar.Modules.Dto.EntityEnum
-
 ## OUTPUTS
 
 ### System.Object

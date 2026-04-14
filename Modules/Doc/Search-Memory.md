@@ -8,7 +8,7 @@ schema: 2.0.0
 # Search-Memory
 
 ## SYNOPSIS
-{{ Fill in the Synopsis }}
+Searches memory notes for matching text.
 
 ## SYNTAX
 
@@ -19,29 +19,37 @@ Search-Memory [-Pattern] <String> [-Entity <EntityEnum[]>] [-Work <WorkEnum>] [-
 ```
 
 ## DESCRIPTION
-{{ Fill in the Description }}
+Scans saved memory notes across one or more entities and returns only the records whose
+note content matches the supplied pattern.
+Supports regex or literal matching, optional
+case sensitivity, and additional filtering by work domain or edge relation.
 
 ## EXAMPLES
 
-### Example 1
-```powershell
-PS C:\> {{ Add example code here }}
+### EXAMPLE 1
+```
+Search-Memory -Pattern 'PlatyPS' -SimpleMatch
+Finds memory records whose notes contain the literal text 'PlatyPS'.
 ```
 
-{{ Add example description here }}
+### EXAMPLE 2
+```
+Search-Memory -Pattern 'test|pester' -Entity Claude -Work AgentMemory
+Searches Claude's AgentMemory entries with a regex pattern and returns the matching records.
+```
 
 ## PARAMETERS
 
-### -CaseSensitive
-Enable case-sensitive matching.
+### -Pattern
+Regex pattern (or literal string with -SimpleMatch) to search note content.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: System.String
 Parameter Sets: (All)
 Aliases:
 
-Required: False
-Position: Named
+Required: True
+Position: 1
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -56,68 +64,6 @@ Type: EdgeGrammar.Modules.Dto.EntityEnum[]
 Parameter Sets: (All)
 Aliases:
 Accepted values: Architect, Gemini, Claude, Grok, GPT, Human, Self, System, Agent, Codex
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -MaxPerEntity
-Max records to scan per Entity.
-Default 500; max 10 000.
-
-```yaml
-Type: System.Int32
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Pattern
-Regex pattern (or literal string with -SimpleMatch) to search note content.
-
-```yaml
-Type: System.String
-Parameter Sets: (All)
-Aliases:
-
-Required: True
-Position: 0
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Relation
-Return only records that contain an Edge with this Relation.
-
-```yaml
-Type: EdgeGrammar.Modules.Dto.RelationEnum
-Parameter Sets: (All)
-Aliases:
-Accepted values: Depends, Creates, Tests, Refactors, Throws, Runs, Guides, Learns, Configures, Interrupts, Thinks, Delivers, Reviews, Documents, Implements, Fixes, Observes, Analyzes, Designs, Encourages, Requests, Reports, Credits, Evolves, Understands, Thanks, Accepts, Imagines, Decodes, Collaborates, Questions, Plans, Grows, Transcends, Reflects, Realizes, Integrates, Delegates, Proposes, Researches
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -SimpleMatch
-Treat Pattern as a literal string - disables regex interpretation.
-
-```yaml
-Type: System.Management.Automation.SwitchParameter
-Parameter Sets: (All)
-Aliases:
 
 Required: False
 Position: Named
@@ -142,6 +88,68 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -Relation
+Return only records that contain an Edge with this Relation.
+
+```yaml
+Type: EdgeGrammar.Modules.Dto.RelationEnum
+Parameter Sets: (All)
+Aliases:
+Accepted values: Depends, Creates, Tests, Refactors, Throws, Runs, Guides, Learns, Configures, Interrupts, Thinks, Delivers, Reviews, Documents, Implements, Fixes, Observes, Analyzes, Designs, Encourages, Requests, Reports, Credits, Evolves, Understands, Thanks, Accepts, Imagines, Decodes, Collaborates, Questions, Plans, Grows, Transcends, Reflects, Realizes, Integrates, Delegates, Proposes, Researches
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -MaxPerEntity
+Max records to scan per Entity.
+Default 500; max 10 000.
+
+```yaml
+Type: System.Int32
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: 500
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -CaseSensitive
+Enable case-sensitive matching.
+
+```yaml
+Type: System.Management.Automation.SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -SimpleMatch
+Treat Pattern as a literal string - disables regex interpretation.
+
+```yaml
+Type: System.Management.Automation.SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -ProgressAction
 {{ Fill ProgressAction Description }}
 
@@ -162,11 +170,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### None
-
 ## OUTPUTS
 
-### System.Object
+### System.Management.Automation.PSCustomObject
 ## NOTES
 
 ## RELATED LINKS

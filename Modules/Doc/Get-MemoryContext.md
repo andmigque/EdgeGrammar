@@ -8,7 +8,7 @@ schema: 2.0.0
 # Get-MemoryContext
 
 ## SYNOPSIS
-{{ Fill in the Synopsis }}
+Renders recent memories as prompt-ready context text.
 
 ## SYNTAX
 
@@ -18,34 +18,26 @@ Get-MemoryContext [[-Entities] <EntityEnum[]>] [[-Count] <Int32>] [[-OutFile] <S
 ```
 
 ## DESCRIPTION
-{{ Fill in the Description }}
+Loads recent memories for the requested entities, formats each memory as Markdown-style text,
+and returns the rendered context.
+When -OutFile is provided, the same rendered context is also
+written to disk for handoff or prompt bootstrapping.
 
 ## EXAMPLES
 
-### Example 1
-```powershell
-PS C:\> {{ Add example code here }}
+### EXAMPLE 1
+```
+Get-MemoryContext -Entities Claude, Architect -Count 5
+Returns formatted context for the five most recent memories from Claude and Architect.
 ```
 
-{{ Add example description here }}
+### EXAMPLE 2
+```
+Get-MemoryContext -Count 10 -OutFile '.\memory-context.md'
+Renders context for all entities, writes it to .\memory-context.md, and returns the same text.
+```
 
 ## PARAMETERS
-
-### -Count
-Max records per Entity.
-Default 500; max 10 000.
-
-```yaml
-Type: System.Int32
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 1
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
 
 ### -Entities
 Entities to include.
@@ -58,8 +50,24 @@ Aliases: Entity
 Accepted values: Architect, Gemini, Claude, Grok, GPT, Human, Self, System, Agent, Codex
 
 Required: False
-Position: 0
+Position: 1
 Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Count
+Max records per Entity.
+Default 500; max 10 000.
+
+```yaml
+Type: System.Int32
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 2
+Default value: 500
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
@@ -73,7 +81,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: False
-Position: 2
+Position: 3
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -99,11 +107,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### None
-
 ## OUTPUTS
 
-### System.Object
+### System.String
 ## NOTES
 
 ## RELATED LINKS

@@ -8,7 +8,7 @@ schema: 2.0.0
 # Measure-MemoryRelation
 
 ## SYNOPSIS
-{{ Fill in the Synopsis }}
+Summarizes saved memory edges by relation type.
 
 ## SYNTAX
 
@@ -17,16 +17,16 @@ Measure-MemoryRelation [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
-{{ Fill in the Description }}
+Loads recent memories across all entities, extracts their Edge records,
+groups them by Relation, and sorts the results by descending frequency.
 
 ## EXAMPLES
 
-### Example 1
-```powershell
-PS C:\> {{ Add example code here }}
+### EXAMPLE 1
 ```
-
-{{ Add example description here }}
+Measure-MemoryRelation
+Returns the most common relationship types found in saved memory edges.
+```
 
 ## PARAMETERS
 
@@ -50,11 +50,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### None
-
 ## OUTPUTS
 
-### System.Object
+### Microsoft.PowerShell.Commands.GroupInfo
 ## NOTES
 
 ## RELATED LINKS

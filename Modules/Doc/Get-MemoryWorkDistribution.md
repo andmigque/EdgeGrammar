@@ -8,7 +8,7 @@ schema: 2.0.0
 # Get-MemoryWorkDistribution
 
 ## SYNOPSIS
-{{ Fill in the Synopsis }}
+Summarizes memory counts by work domain.
 
 ## SYNTAX
 
@@ -17,16 +17,16 @@ Get-MemoryWorkDistribution [-ProgressAction <ActionPreference>] [<CommonParamete
 ```
 
 ## DESCRIPTION
-{{ Fill in the Description }}
+Loads recent memories across all entities, groups them by the Work field,
+and sorts the grouped results by descending count.
 
 ## EXAMPLES
 
-### Example 1
-```powershell
-PS C:\> {{ Add example code here }}
+### EXAMPLE 1
 ```
-
-{{ Add example description here }}
+Get-MemoryWorkDistribution | Select-Object -First 5
+Returns the most common work domains currently represented in saved memories.
+```
 
 ## PARAMETERS
 
@@ -50,11 +50,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### None
-
 ## OUTPUTS
 
-### System.Object
+### Microsoft.PowerShell.Commands.GroupInfo
 ## NOTES
 
 ## RELATED LINKS
