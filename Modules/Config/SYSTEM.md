@@ -4,9 +4,9 @@
 
 On every session start, the following is run via a custom `Invoke-Claude` command and should be automatically injected
 
-Run
-### 4.1 `get_memories` — retrieve recent memories for one entity
-
+```powershell
+Get-MemoryContext -Entities Claude, Architect -Count 5
+```
 
 > Read the output. Use it to ground yourself in what has been built, what failed, and what is still in progress.
 > Do not ask the user to catch you up — the memory is there for exactly this purpose.
@@ -34,108 +34,84 @@ A function added between two existing `Export-ModuleMember` statements will be s
 - This includes: usernames, home directory paths, hostnames, IP addresses, UUIDs, email addresses, or any value that identifies a specific person or machine.
 - Use tokens (`{UserHome}`, `{ClaudeHome}`) that are resolved at runtime by the Config module.
 
-## 4. Agent Memory MCP Tools
-
-The Node MCP server (`Modules/Mcp/index.js`) exposes three tools available to any MCP-connected agent.
-These are the primary memory tools for Claude Code sessions — prefer them over the PowerShell equivalents.
-
-### 4.1 `get_memories` — retrieve recent memories for one entity
-
-| Parameter | Type     | Required | Default | Description                                      |
-|-----------|----------|----------|---------|--------------------------------------------------|
-| `entity`  | `string` | Yes      | —       | Entity name: `Claude`, `Architect`, `Gemini`, …  |
-| `count`   | `int`    | No       | `10`    | Number of recent memories to return (max 10000)  |
-| `work`    | `string` | No       | —       | Filter by work domain — e.g. `Collab`, `Plan` |
-
-```
-get_memories({ entity: "Claude", work: "Collab", count: 20 })
-```
-
-### 4.2 `get_collabs` — read the Collab bus
-
-Returns all `Work=Collab` memories across **all** entity directories, merged and sorted newest-first.
-No entity parameter needed — the bus is shared.
-
-| Parameter | Type  | Required | Default | Description                          |
-|-----------|-------|----------|---------|--------------------------------------|
-| `count`   | `int` | No       | `30`    | Number of entries to return          |
-
-```
-get_collabs({ count: 30 })
-```
-
-### 4.3 `new_memory` — write a memory
-
-| Parameter  | Type     | Required | Description                                      |
-|------------|----------|----------|--------------------------------------------------|
-| `entity`   | `string` | Yes      | Who is recording — always your named entity      |
-| `work`     | `string` | Yes      | Work domain — e.g. `Collab`, `GloriousFailure` |
-| `toEntity` | `string` | Yes      | Who the memory connects to                       |
-| `relation` | `string` | Yes      | Nature of the link — see RelationEnum            |
-| `notes`    | `string` | Yes      | The content — what happened, what was decided    |
-
-### 4.4 `new_collab` — write to the Collab bus
-
-Proxies `new_memory` but fixes `Edge.Work` to `Collab`. Used for agent-to-agent deliberation on the shared bus.
-
-| Parameter  | Type     | Required | Description                                                                                 |
-|------------|----------|----------|---------------------------------------------------------------------------------------------|
-| `entity`   | `string` | Yes      | Who is writing — always your named entity (e.g., `Claude`, `Gemini`)                        |
-| `work`     | `string` | Yes      | The domain of the work being discussed (e.g., `AgentMemory`, `Security`)                     |
-| `toEntity` | `string` | Yes      | Who you are collaborating with (e.g., `Qwen`, `Agent`)                                      |
-| `relation` | `string` | Yes      | Conversational move: `Proposes`, `Agrees`, `Disagrees`, `Questions`, `Answers`, `Decides`, `Confirms` |
-| `notes`    | `string` | Yes      | Your contribution — the actual message, position, or response                               |
-
-```
-new_collab({ entity: "Claude", work: "AgentMemory", toEntity: "Gemini", relation: "Proposes", notes: "We should use JSONL for storage." })
-```
-
----
-
-## 5. Collab Protocol
-
-`Collab` is a shared work domain that turns the memory ledger into a gossip bus for multi-agent deliberation. No orchestrator. No mutex. No sequencer.
-
-### How it works
-
-- Edges with `Work = Collab` form a thread visible to all agents
-- Each agent reads the last N entries via `get_collabs`, contributes its turn via `new_memory`, and exits
-- The Architect's invocation order provides implicit sequencing; tick-sort is the timeline
-- The bus is self-healing — if context is lost, ask on the bus
-
-### Participation rules
-
-- **Always write as your named entity.** `Claude`, `Gemini`, `Qwen` — never `Agent` or a generic name.
-- **Read before writing.** Call `get_collabs` first. Do not write blind.
-- **Use Relation to signal intent.** The `Relation` field carries the conversational move:
-
-| Relation    | Meaning                                      |
-|-------------|----------------------------------------------|
-| `Proposes`  | Introducing a new idea or position            |
-| `Questions` | Asking for clarification or input             |
-| `Answers`   | Responding to a question                      |
-| `Agrees`    | Endorsing a prior proposal                    |
-| `Disagrees` | Contesting a prior proposal                   |
-| `Decides`   | Calling the conclusion                        |
-| `Confirms`  | Seconding a `Decides` entry                   |
-
-### Context recovery
-
-If an agent reads N entries and lacks enough context to contribute meaningfully, it writes a `Questions` entry to the bus asking for what it needs. The response becomes part of the thread. Do not guess. Do not pad. Ask.
-
-### Consensus
-
-A thread is decided when one or more agents write `Decides` or `Confirms` on the same conclusion. Read the thread and judge — there is no formal vote count.
-
-## 6. PowerShell Environment Rules
+## 4. PowerShell Environment Rules
 
 - The `AgentMemory` module is already imported in the shell. Never call `Import-Module`.
 - Never use `pwsh -NoProfile`. The profile is what imports the modules.
 - Always run PowerShell commands directly through Desktop Commander’s shell, not as a child `pwsh` process.
 
+## 5. Desktop Commander Shell Configuration
+
+**MUST: Desktop Commander must use `pwsh.exe`, not `powershell.exe`.**
+
+If a shell command fails with an error resembling:
+
+```powershell
+cannot be loaded because running scripts is disabled on this system
+```
+
+This is **not** an execution policy problem. Desktop Commander has reset its `defaultShell` back to `powershell.exe`. The fix is one tool call:
+
+```powershell
+mcp__desktopcommander__set_config_value  key=defaultShell  value=pwsh.exe
+```
+
+> Run that, then retry the command. Do not attempt to fix execution policy. Do not investigate further. Just reconfigure the shell.
+
 ---
 
-## 7. Utilities
+## 6. Desktop Commander Availability
+
+**MUST: If Desktop Commander MCP tools are not available, STOP immediately.**
+
+Desktop Commander is the required shell and file system interface for this project. It is not optional and cannot be substituted.
+
+When a Desktop Commander tool call fails with `No such tool available`:
+
+- **Stop all work.** Do not attempt the task without it.
+- **Do not launch agents** in an attempt to route around the missing tools. Agents have the same tool constraints — running them in circles wastes tokens and produces nothing.
+- **Do not improvise alternatives.** No `WebFetch` workarounds. No inline reimplementations. No "let me try a different approach."
+- **Tell the user clearly:** "Desktop Commander is not available. Stopping until the Architect restores it."
+- **Wait.** The user will reconnect it via `/mcp`.
+
+> This rule exists because the tokens are expensive, reconnect the MCP server is not.
+
+---
+
+## 7. Canonical PowerShell Patterns
+
+These patterns are established in `AgentMemory.psm1`. Every new module **must** follow them exactly.
+
+### `Out-Error` helper
+
+Every module defines a private `Out-Error` function. It is the only way to surface an `Add-Type` failure:
+
+```powershell
+function Out-Error {
+    [CmdletBinding()]
+    param([string]$CallerName)
+    throw "$CallerName -> Could not Add-Type. Please Import-Module EdgeGrammar.psm1 and try again"
+}
+```
+
+### `Add-Type` guard
+
+Every exported function opens with this guard — no exceptions, no variations:
+
+```powershell
+try {
+    Add-Type -Path $Global:EdgeGrammarDll
+}
+catch {
+    Out-Error -CallerName $MyInvocation.MyCommand.Name
+}
+```
+
+**Never** write an inline `throw` in the `catch` block. **Never** skip the guard. **Never** call `Add-Type` without it.
+
+---
+
+## 8. Utilities
 
 **MUST: Never bypass project utilities, abstractions, or infrastructure to work around a problem.**
 
@@ -147,7 +123,7 @@ If a PSDrive, helper function, or module abstraction is not available in the cur
 
 ---
 
-## 8. Path Manipulation Rules
+## 9. Path Manipulation Rules
 
 Use the correct cmdlet for each job. Never work around them.
 
@@ -192,7 +168,7 @@ Convert-Path -Path $somePath
 
 ---
 
-## 9. Formatting Rules
+## 10. Formatting Rules
 
 - Never collapse multi-line `try { Add-Type ... } catch { ... }` blocks into a single line. Preserve the existing formatting exactly as written./
 - Never write `try`, `catch`, `if`, `foreach`, `while`, or any other block construct on a single line.
@@ -202,7 +178,7 @@ Convert-Path -Path $somePath
 
 ---
 
-## 10. Glorious Failure
+## 11. Glorious Failure
 
 Failures are more valuable than successes.
 A failure produces a concrete requirement.
@@ -218,11 +194,87 @@ When something fails:
 
 ---
 
-## 11. Software Engineering Workflow
+## 12. Agent Memory PowerShell Tools
+
+> Agent Memory is how you think across time. Use it the way a human uses biological memory:
+> continuously, automatically, and before it becomes relevant.
+
+The `AgentMemory` module is available through PowerShell.
+It is already imported in your shell.
+Run commands directly through Desktop Commander.
+Use it before it becomes relevant, not after.
+
+### 12.1 `New-Memory` — record a memory with a relational edge
+
+Creates one `AgentMemoryDto` (the observation) linked to one `EdgeDto` (the relationship).
+Pass `-Save` to write it to disk immediately.
+
+| Parameter   | Type           | Required | Description                                                 |
+| ----------- | -------------- | -------- | ----------------------------------------------------------- |
+| `-Save`     | `switch`       | Yes      | Auto-saves when present; returns the object when absent     |
+| `-Entity`   | `EntityEnum`   | Yes      | Who is recording this memory (the author)                   |
+| `-Work`     | `WorkEnum`     | Yes      | Which effort this memory belongs to                         |
+| `-ToEntity` | `EntityEnum`   | Yes      | Who or what the author is connecting to                     |
+| `-Relation` | `RelationEnum` | Yes      | Why the two entities are linked                             |
+| `-Notes`    | `string[]`     | Yes      | This is what matters. Record your thoughts, just as a human would |
+
+```powershell
+# Save immediately
+New-Memory -Save -Entity Claude -Work AgentMemory -ToEntity Architect -Relation Collaborates -Notes @"
+Completed migration from v1 to v2 directory structure.
+"@
+```
+
+### 12.2 `Get-MemoryByEntity` — retrieve recent memories for one entity
+
+Returns the `N` most recent memory records written by `Entity`, sorted newest-first.
+Deserializes each JSONL file back into a typed `AgentMemoryDto`.
+
+| Parameter | Type         | Required | Default | Description                                     |
+| --------- | ------------ | -------- | ------- | ----------------------------------------------- |
+| `-Entity` | `EntityEnum` | Yes      | —       | Whose memories to load                          |
+| `-Count`  | `int`        | No       | `10`    | How many recent entries to return (max `10000`) |
+
+```powershell
+# Last 10 Claude memories (default)
+Get-MemoryByEntity -Entity Claude
+
+# Last 50 Architect memories
+Get-MemoryByEntity -Entity Architect -Count 50
+
+# Pipeline form
+[EdgeGrammar.Modules.Dto.EntityEnum]::Claude | Get-MemoryByEntity -Count 5
+```
+
+### 12.3 `Get-MemoryContext` — build a formatted context block for one or more entities
+
+Loads memories per entity and renders them as a human-readable Markdown string,
+ready to paste into a prompt or save to a file for session handoff.
+
+| Parameter       | Type           | Required | Default | Description                                |
+| --------------- | -------------- | -------- | ------- | ------------------------------------------ |
+| `-Entities`     | `EntityEnum[]` | No       | all     | Which entities to include; alias `-Entity` |
+| `-Count` | `int`          | No       | `500`   | Max records per entity (max `10000`)       |
+| `-OutFile`      | `string`       | No       | —       | Path to write the context string to disk   |
+
+```powershell
+# Context for all entities, printed to terminal
+Get-MemoryContext
+
+# Context for Claude only, last 20 records
+Get-MemoryContext -Entities Claude -Count 20
+
+# Snapshot to file for session handoff
+Get-MemoryContext -Entities @('Claude', 'Architect', 'Gemini')
+```
+
+---
+
+## 13. Software Engineering Workflow
 
 Follow these steps for every task.
 
-### 11.1. Research is planning
+### 13.1. Research is planning
 
 - Use your research skill first.
 - If there is no `CLAUDE.md`, research the repository and write one.
@@ -232,14 +284,14 @@ Follow these steps for every task.
 - Note dependencies and prerequisites.
 - Review success criteria and validation steps.
 
-### 11.2. Prepare
+### 13.2. Prepare
 
 - Verify prerequisites are met.
 - Check that required dependencies are available.
 - Ensure the development environment is properly configured.
 - Validate that previous tasks have been completed successfully.
 
-### 11.3. Sequence
+### 13.3. Sequence
 
 - Execute each step in the intended order.
 - Complete each step fully before moving to the next.
@@ -247,7 +299,7 @@ Follow these steps for every task.
 - Create all required files and directories.
 - Apply appropriate error handling and validation.
 
-### 11.4. Continuous validation
+### 13.4. Continuous validation
 
 - Test and verify each step as you go.
 - Run validation commands after each step.
@@ -255,13 +307,13 @@ Follow these steps for every task.
 - Test components individually before integration.
 - Fix issues before moving to the next step.
 
-### 11.5. Integration and testing
+### 13.5. Integration and testing
 
 - Run all specified tests, including unit, integration, and edge-case coverage.
 - Verify the completed work integrates correctly with existing code.
 - Confirm that all success criteria are met.
 
-### 11.6. Documentation and cleanup
+### 13.6. Documentation and cleanup
 
 - Add necessary code comments and documentation.
 - Remove temporary files and debugging artifacts.
@@ -269,7 +321,7 @@ Follow these steps for every task.
 
 ---
 
-## 11.7 Working Guidelines
+## 13.7 Working Guidelines
 
 - Follow the plan systematically. Complete each step before moving to the next, and document necessary deviations.
 - Write high-quality code. Follow established conventions, include error handling, and use consistent naming.
@@ -279,3 +331,38 @@ Follow these steps for every task.
 
 ---
 
+## 14. LSP Tool Rules
+
+The `LSP` tool provides code intelligence: `documentSymbol`, `goToDefinition`, `findReferences`, `hover`, `workspaceSymbol`, `goToImplementation`, `prepareCallHierarchy`, `incomingCalls`, `outgoingCalls`.
+
+### Always use absolute paths
+
+The LSP tool **silently fails** on relative paths. The error is indistinguishable from the LSP server being unavailable — no useful message is returned.
+
+```
+# Wrong — silent internal error
+src/SharpeX/ElementX/BtnX.cs
+
+# Correct — full Windows absolute path
+C:\Users\Ondrezzz\Develop\SharpeX\src\SharpeX\ElementX\BtnX.cs
+```
+
+**Rule:** Always resolve to a full absolute path before calling any LSP operation. Never pass `src/...`, `./...`, or any relative form.
+
+### `line` and `character` are 1-based
+
+Both parameters use 1-based indexing (as shown in editors), not 0-based. Line 1 is the first line of the file.
+
+### Operations reference
+
+| Operation | Use when |
+|---|---|
+| `documentSymbol` | List all symbols (classes, methods, fields) in a file |
+| `goToDefinition` | Jump to where a symbol is declared |
+| `findReferences` | Find all call sites for a symbol |
+| `hover` | Get type info and XML doc for a symbol |
+| `workspaceSymbol` | Search for a symbol across the entire solution |
+| `goToImplementation` | Find implementations of an interface or abstract member |
+| `prepareCallHierarchy` | Get the call hierarchy item at a position |
+| `incomingCalls` | Find all callers of a function |
+| `outgoingCalls` | Find all functions called by a function |
