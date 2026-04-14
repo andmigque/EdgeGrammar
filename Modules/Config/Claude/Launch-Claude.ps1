@@ -20,4 +20,4 @@ $contextOutput
 Set-Content -Path "$($HOME)\.claude\DYNAMIC_SYSTEM_PROMPT.md" -Value $dynamicSystemPrompt -Force
 
 
-claude --system-prompt-file "$($HOME)\.claude\DYNAMIC_SYSTEM_PROMPT.md"
+claude --tools "CronCreate, CronDelete, CronList, EnterPlanMode, ExitPlanMode, Agent, Monitor, Skill, TaskCreate, TaskGet, TaskList, TaskOutput, TaskOutput, WebFetch, WebSearch " --system-prompt-file "$($HOME)\.claude\DYNAMIC_SYSTEM_PROMPT.md"

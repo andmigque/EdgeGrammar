@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<!--
+  EdgeGrammar Memory UI — structural extraction from web.html.js
+  NOTE: this is a static snapshot for exploration only.
+        Dynamic template expressions are shown as {{PLACEHOLDER}} tokens.
+        The authoritative source remains web.html.js.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EdgeGrammar Memory</title>
+<link rel="stylesheet" href="/vendor/easymde.min.css">
+<link rel="stylesheet" href="/static/web.style.css">
+<script src="/vendor/easymde.min.js"></script>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────── -->
+<div class="h1-row">
+  <h1>EdgeGrammar</h1>
+  <button class="ham" id="ham-btn">&#9776;</button>
+</div>
+
+<!-- ── Saved-States Sidebar ────────────────────────────────────────────── -->
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <span>SAVED STATES</span>
+    <button class="sidebar-close" id="sidebar-close">&#215;</button>
+  </div>
+  <div class="sidebar-body" id="sidebar-body"></div>
+</div>
+
+<!-- ── JSON Modal ──────────────────────────────────────────────────────── -->
+<div class="json-overlay" id="json-overlay">
+  <div class="json-modal">
+    <div class="json-modal-head">
+      <span>JSON</span>
+      <button class="json-close" id="json-close">&#215;</button>
+    </div>
+    <pre id="json-pre"></pre>
+  </div>
+</div>
+
+<!-- ── Two-Column Layout ───────────────────────────────────────────────── -->
+<div class="layout">
+
+  <!-- Left: memory feed -->
+  <div class="left">
+    <div class="tabs" id="tabs">
+      <!-- {{ENTITIES.map → tab buttons}} -->
+      <button class="tab active" data-entity="{{ENTITY_0}}">{{ENTITY_0}}</button>
+      <!-- ... one per entity ... -->
+      <button class="tab collab-tab" data-entity="Collab">Collab</button>
+    </div>
+
+    <div class="panel active" id="panel-combined">
+      <div class="count" style="display:flex;align-items:center;gap:1rem">
+        <div>
+          Show: <input type="number" id="combined-limit" value="30" style="width:50px;padding:2px 4px"> records
+        </div>
+        <label style="color:#888;cursor:pointer;display:flex;align-items:center">
+          <input type="checkbox" id="hide-records" style="margin-right:0.3rem"> Hide
+        </label>
+        <label style="color:#888;cursor:pointer;display:flex;align-items:center">
+          <input type="checkbox" id="show-graph" style="margin-right:0.3rem"> Graph
+        </label>
+        <select id="filter-relation" style="background:#0d0d0d;border:1px solid #333;color:#888;padding:.25rem .5rem;font:inherit;font-size:.78rem;cursor:pointer">
+          <option value="">— relation —</option>
+          <!-- {{RELATIONS.map → option elements}} -->
+        </select>
+        <button class="btn-save" id="btn-save">Save</button>
+        <button class="btn-save" id="btn-clear-all">Clear</button>
+      </div>
+
+      <!-- Graph panel (hidden by default) -->
+      <div id="graph-panel" style="display:none;position:relative;width:100%;height:480px;background:#141414;border:1px solid #222;margin-bottom:.7rem;cursor:crosshair">
+        <svg id="graph-svg" style="width:100%;height:100%;display:block"></svg>
+      </div>
+
+      <!-- Memory card feed (populated by JS) -->
+      <div id="combined-feed"></div>
+    </div>
+  </div>
+
+  <!-- Right: Gemini Chat + Memory Form -->
+  <div class="right">
+
+    <!-- Gemini Chat panel -->
+    <div id="chat-panel" style="display:flex;flex-direction:column;background:#141414;border:1px solid #222;margin-bottom:1rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem .75rem;border-bottom:1px solid #222;flex-shrink:0">
+        <span style="color:#7fba00;font-size:.75rem;letter-spacing:.05em">GEMINI CHAT</span>
+        <button id="chat-clear" style="background:none;border:1px solid #333;color:#555;padding:.15rem .6rem;font:inherit;font-size:.72rem;cursor:pointer">clear</button>
+      </div>
+      <div id="chat-messages" style="height:50vh;overflow-y:auto;padding:.75rem;display:flex;flex-direction:column;gap:.6rem"></div>
+      <div style="display:flex;gap:.5rem;padding:.5rem .75rem;border-top:1px solid #222;flex-shrink:0">
+        <textarea id="chat-input" rows="1" placeholder="Message…" style="flex:1;background:#0d0d0d;border:1px solid #333;color:#ccc;padding:.35rem .6rem;font:inherit;font-size:.82rem;resize:none;min-height:34px;max-height:120px;field-sizing:content"></textarea>
+        <button id="chat-send" style="background:#7fba00;color:#000;border:none;padding:.35rem .9rem;font:inherit;font-size:.82rem;cursor:pointer;align-self:flex-end">Send</button>
+      </div>
+    </div>
+
+    <!-- New Memory form -->
+    <form id="form">
+      <h2>Memory</h2>
+      <div class="selects">
+        <select name="entity">
+          <!-- {{ENTITIES.map → option[selected=Architect]}} -->
+        </select>
+        <select name="work">
+          <!-- {{WORKS.map → option[selected=Collab]}} -->
+        </select>
+        <select name="toEntity">
+          <!-- {{ENTITIES.map → option[selected=Agent]}} -->
+        </select>
+        <select name="relation">
+          <!-- {{RELATIONS.map → option[selected=Decides]}} -->
+        </select>
+      </div>
+      <label style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:#888;cursor:pointer">
+        <input type="checkbox" name="collab" value="1" style="width:auto;accent-color:#7fba00"> Collab
+      </label>
+      <textarea name="notes" placeholder="Notes…"></textarea>
+      <button type="submit">Save</button>
+      <div id="status"></div>
+    </form>
+
+  </div>
+</div>
+
+<script src="/static/web.client.js"></script>
+</body>
+</html>

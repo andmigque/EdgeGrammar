@@ -1,0 +1,89 @@
+<!--
+  Popovers — Overview
+  ============================================================
+  Things to know:
+
+  - Popovers rely on Popper.js for positioning. Use
+    bootstrap.bundle.min.js (already included) — it bundles
+    Popper so no separate script tag is needed.
+
+  - Popovers are OPT-IN. They do nothing until you initialize
+    them with JavaScript (see script block below).
+
+  - Zero-length title or content = popover never shows.
+
+  - Use container: 'body' to avoid clipping inside complex
+    components like input groups or button groups.
+
+  - Popovers on .disabled elements must be triggered on a
+    wrapper element instead.
+
+  - title text → data-bs-title
+    body text  → data-bs-content
+  ============================================================
+-->
+
+<!-- Direction Examples -->
+<h6 class="text-muted mt-2 mb-3">Direction</h6>
+<div class="d-flex gap-2 flex-wrap mb-4">
+  <button type="button"
+          class="btn btn-secondary"
+          data-bs-toggle="popover"
+          data-bs-placement="top"
+          data-bs-title="Popover top"
+          data-bs-content="Content on top.">
+    Top
+  </button>
+  <button type="button"
+          class="btn btn-secondary"
+          data-bs-toggle="popover"
+          data-bs-placement="right"
+          data-bs-title="Popover right"
+          data-bs-content="Content on right.">
+    Right
+  </button>
+  <button type="button"
+          class="btn btn-secondary"
+          data-bs-toggle="popover"
+          data-bs-placement="bottom"
+          data-bs-title="Popover bottom"
+          data-bs-content="Content on bottom.">
+    Bottom
+  </button>
+  <button type="button"
+          class="btn btn-secondary"
+          data-bs-toggle="popover"
+          data-bs-placement="left"
+          data-bs-title="Popover left"
+          data-bs-content="Content on left.">
+    Left
+  </button>
+</div>
+
+<!-- Dismiss on next click -->
+<h6 class="text-muted mb-2">Dismiss on Next Click</h6>
+<p class="mb-3">
+  Use <code>data-bs-trigger="focus"</code> to dismiss on the
+  next click anywhere outside the element.
+</p>
+<button type="button"
+        class="btn btn-danger mb-4"
+        data-bs-toggle="popover"
+        data-bs-trigger="focus"
+        data-bs-title="Dismissible"
+        data-bs-content="Click anywhere outside to close this.">
+  Dismissible popover
+</button>
+
+<!--
+  Initialization — required, popovers are opt-in.
+  This script runs after the partial is injected by HtmX.
+-->
+<script>
+  (function () {
+    const triggers = document.querySelectorAll(
+      '[data-bs-toggle="popover"]'
+    );
+    [...triggers].forEach(el => new bootstrap.Popover(el));
+  })();
+</script>

@@ -1,0 +1,27 @@
+/* Carousel — CMMCPower design system overrides for Bootstrap carousel */
+
+.carousel-item {
+    min-height: 420px;
+    background-color: #0d1b2e;
+    padding: 3rem 4rem;
+    text-align: center;
+}
+
+.carousel-slide-heading {
+    
+    font-size: 2.25rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 0 0 1.25rem 0;
+}
+
+.carousel-slide-body {
+    color: #e8f4ff;
+    
+    font-size: 1.15rem;
+    font-weight: 400;
+    text-align: center;
+    line-height: 1.7;
+    margin: 0;
+}
