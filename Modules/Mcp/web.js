@@ -88,7 +88,7 @@ function saveMemory({ entity, work, toEntity, relation, notes, edgeWork }) {
   return memory;
 }
 
-const HTML = buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOTNET_EPOCH_OFFSET });
+const HTML = buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOTNET_EPOCH_OFFSET, SYSTEM_PROMPT });
 
 https.createServer({ cert: fs.readFileSync(TLS_CERT), key: fs.readFileSync(TLS_KEY) }, (req, res) => {
   const url = new URL(req.url, `https://localhost:${PORT}`);
