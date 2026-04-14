@@ -107,6 +107,8 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
     <span>^&#8679;G <span style="color:#333">graph</span></span>
     <span>^&#8679;H <span style="color:#333">hide</span></span>
     <span>^&#8679;&#8629; <span style="color:#333">save</span></span>
+    <span>^&#8679;&#8593; <span style="color:#333">scroll up</span></span>
+    <span>^&#8679;&#8595; <span style="color:#333">scroll down</span></span>
   </div>
   <button class="ham" id="ham-btn">&#9776;</button>
 </div>
@@ -185,7 +187,7 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
     </div>
   </div>
   <div class="right">
-    <div id="chat-panel" style="display:flex;flex-direction:column;background:#141414;border:1px solid #222;margin-bottom:1rem">
+    <div id="chat-panel" style="display:flex;flex-direction:column;background:#141414;border:1px solid #222;height:100%;min-height:0">
       <div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem .75rem;border-bottom:1px solid #222;flex-shrink:0">
         <span style="color:#7fba00;font-size:.75rem;letter-spacing:.05em">GEMINI CHAT</span>
         <div style="display:flex;gap:.4rem;align-items:center">
@@ -193,7 +195,7 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
           <button id="chat-clear" style="background:none;border:1px solid #333;color:#555;padding:.15rem .6rem;font:inherit;font-size:.72rem;cursor:pointer">clear</button>
         </div>
       </div>
-      <div id="chat-messages" style="height:75vh;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:1rem"></div>
+      <div id="chat-messages" style="flex:1;min-height:0;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:1rem"></div>
       <div style="display:flex;gap:.5rem;padding:.5rem .75rem;border-top:1px solid #222;flex-shrink:0">
         <textarea id="chat-input" rows="1" placeholder="Message\u2026" style="flex:1;background:#0d0d0d;border:1px solid #333;color:#ccc;padding:.35rem .6rem;font:inherit;font-size:.82rem;resize:none;min-height:34px;max-height:120px;field-sizing:content"></textarea>
         <button id="chat-send" style="background:#7fba00;color:#000;border:none;padding:.35rem .9rem;font:inherit;font-size:.82rem;cursor:pointer;align-self:flex-end">Send</button>
@@ -327,11 +329,8 @@ document.getElementById('form').addEventListener('submit', async e => {
   delete body.collab;
   const r = await fetch('/api/memories', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
   if (r.ok) {
-    document.getElementById('status').textContent = 'Saved.';
     mde.value('');
     await loadCombined();
-  } else {
-    document.getElementById('status').textContent = 'Error: ' + r.status;
   }
 });
 
@@ -524,7 +523,7 @@ document.addEventListener('keydown', function(e) {
       e.preventDefault();
       const cb = document.querySelector('input[name="collab"]');
       cb.checked = !cb.checked;
-      document.getElementById('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      document.getElementById('form').dispatchEvent(new SubmitEvent('submit', { bubbles: true, cancelable: true }));
       break;
     }
 
@@ -545,8 +544,19 @@ document.addEventListener('keydown', function(e) {
 
     case 'enter': // Submit memory form
       e.preventDefault();
-      document.getElementById('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      document.getElementById('form').dispatchEvent(new SubmitEvent('submit', { bubbles: true, cancelable: true }));
       break;
+
+    case 'arrowup': // Scroll active panel up
+    case 'arrowdown': { // Scroll active panel down
+      e.preventDefault();
+      const recordsVisible = document.getElementById('combined-feed').style.display !== 'none';
+      const scrollTarget = recordsVisible
+        ? document.querySelector('.left')
+        : document.getElementById('chat-messages');
+      scrollTarget.scrollBy({ top: e.key === 'ArrowUp' ? -120 : 120, behavior: 'smooth' });
+      break;
+    }
   }
 });
 
