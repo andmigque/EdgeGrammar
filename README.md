@@ -1,6 +1,6 @@
 # Edge Grammar
 
-A memory system grammar for collaboration with agentic AI that captures relationship dynamics and preferences over time.
+EdgeGrammar is a memory system for Agentic workloads. It captures the intent of entities with agency as a work, relation, summary graph.
 
 ## Build and Test
 
