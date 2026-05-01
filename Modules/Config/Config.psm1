@@ -121,6 +121,7 @@ function Sync-Skill {
     $skillMd          = Join-Path $skillSource 'SKILL.md'
     $agentMemorySrc   = Join-Path $modulesRoot 'AgentMemory'
     $dtoSrc           = Join-Path $modulesRoot 'Dto'
+    $docSource        = Join-Path $modulesRoot 'Doc'
 
     if (-not (Test-Path $skillMd)) {
         throw "Sync-Skill -> No SKILL.md found for '$SkillName' at: $skillMd"
@@ -131,9 +132,10 @@ function Sync-Skill {
     $refDest          = Join-Path $skillDest 'references'
     $agentMemoryDest  = Join-Path $refDest 'AgentMemory'
     $dtoDest          = Join-Path $refDest 'Dto'
+    $docDest          = Join-Path $refDest 'Doc'
 
     # 1. Ensure destination directories exist
-    foreach ($dir in @($skillDest, $agentMemoryDest, $dtoDest)) {
+    foreach ($dir in @($skillDest, $agentMemoryDest, $dtoDest, $docDest)) {
         if (-not (Test-Path $dir)) {
             [void](New-Item -Path $dir -ItemType Directory -Force)
         }
@@ -150,6 +152,10 @@ function Sync-Skill {
     # 4. Copy Dto module
     Copy-Item -Path (Join-Path $dtoSrc '*') -Destination $dtoDest -Force -Recurse
     Write-Verbose "Copied Dto -> $dtoDest"
+
+    # 5. Copy Docs
+    Copy-Item -Path (Join-Path $docSource '*') -Destination $docDest -Force -Recurse
+    Write-Verbose "Copied Dto -> $docDest"
 
     Write-Host "Synced skill '$SkillName' -> $skillDest" -ForegroundColor Green
 }

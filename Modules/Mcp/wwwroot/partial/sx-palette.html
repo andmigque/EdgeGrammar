@@ -1,0 +1,223 @@
+<style>
+  :root {
+    --color-light-gray:    #d9d9d9;
+    --color-orange:        #e88a1a;
+    --color-red:           #cf3030;
+    --color-dark:          #141414;
+
+    --color-light-gray-50: #6d6d6d;
+    --color-orange-50:     #74450d;
+    --color-red-50:        #681818;
+    --color-dark-50:       #0a0a0a;
+
+    --bg-primary:          var(--color-light-gray);
+    --bg-secondary:        var(--color-light-gray-50);
+    --bg-inverse:          var(--color-dark);
+    --bg-inverse-darker:   var(--color-dark-50);
+
+    --text-primary:        var(--color-dark);
+    --text-muted:          var(--color-light-gray-50);
+    --text-inverse:        var(--color-light-gray);
+
+    --accent-primary:      var(--color-orange);
+    --accent-primary-dark: var(--color-orange-50);
+    --accent-secondary:    var(--color-red);
+    --accent-sec-dark:     var(--color-red-50);
+
+    --color-danger:        var(--color-red);
+    --color-danger-dark:   var(--color-red-50);
+    --color-warning:       var(--color-orange);
+    --color-warning-dark:  var(--color-orange-50);
+  }
+
+  .sx-swatch {
+    width: 56px;
+    height: 56px;
+    border-radius: 6px;
+    border: 1px solid rgba(0,0,0,.12);
+    flex-shrink: 0;
+  }
+  .sx-swatch-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 10px;
+  }
+  .sx-swatch-name {
+    font-family: monospace;
+    font-size: .82rem;
+    min-width: 200px;
+  }
+  .sx-swatch-hex {
+    font-family: monospace;
+    font-size: .75rem;
+    color: #6c757d;
+  }
+  .sx-group-title {
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #6c757d;
+    margin: 1.5rem 0 .6rem;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: .3rem;
+  }
+</style>
+
+<!-- Base Colors -->
+<p class="sx-group-title">Base Colors — Literals</p>
+
+<div class="sx-swatch-row">
+  <span class="sx-swatch"
+        style="background: var(--color-light-gray);"></span>
+  <span class="sx-swatch-name">--color-light-gray</span>
+  <span class="sx-swatch-hex">#d9d9d9</span>
+</div>
+<div class="sx-swatch-row">
+  <span class="sx-swatch"
+        style="background: var(--color-orange);"></span>
+  <span class="sx-swatch-name">--color-orange</span>
+  <span class="sx-swatch-hex">#e88a1a</span>
+</div>
+<div class="sx-swatch-row">
+  <span class="sx-swatch"
+        style="background: var(--color-red);"></span>
+  <span class="sx-swatch-name">--color-red</span>
+  <span class="sx-swatch-hex">#cf3030</span>
+</div>
+<div class="sx-swatch-row">
+  <span class="sx-swatch"
+        style="background: var(--color-dark);"></span>
+  <span class="sx-swatch-name">--color-dark</span>
+  <span class="sx-swatch-hex">#141414</span>
+</div>
+
+<p class="sx-group-title">Base Colors — 50% Darker</p>
+
+<div class="sx-swatch-row">
+  <span class="sx-swatch"
+        style="background: var(--color-light-gray-50);"></span>
+  <span class="sx-swatch-name">--color-light-gray-50</span>
+  <span class="sx-swatch-hex">#6d6d6d</span>
+</div>
+<div class="sx-swatch-row">
+  <span class="sx-swatch"
+        style="background: var(--color-orange-50);"></span>
+  <span class="sx-swatch-name">--color-orange-50</span>
+  <span class="sx-swatch-hex">#74450d</span>
+</div>
+<div class="sx-swatch-row">
+  <span class="sx-swatch"
+        style="background: var(--color-red-50);"></span>
+  <span class="sx-swatch-name">--color-red-50</span>
+  <span class="sx-swatch-hex">#681818</span>
+</div>
+<div class="sx-swatch-row">
+  <span class="sx-swatch"
+        style="background: var(--color-dark-50);"></span>
+  <span class="sx-swatch-name">--color-dark-50</span>
+  <span class="sx-swatch-hex">#0a0a0a</span>
+</div>
+
+<p class="sx-group-title">Semantic — Backgrounds</p>
+
+<div class="sx-swatch-row">
+  <span class="sx-swatch"
+        style="background: var(--bg-primary);"></span>
+  <span class="sx-swatch-name">--bg-primary</span>
+  <span class="sx-swatch-hex">→ --color-light-gray</span>
+</div>
+<div class="sx-swatch-row">
+  <span class="sx-swatch"
+        style="background: var(--bg-secondary);"></span>
+  <span class="sx-swatch-name">--bg-secondary</span>
+  <span class="sx-swatch-hex">→ --color-light-gray-50</span>
+</div>
+<div class="sx-swatch-row">
+  <span class="sx-swatch"
+        style="background: var(--bg-inverse);"></span>
+  <span class="sx-swatch-name">--bg-inverse</span>
+  <span class="sx-swatch-hex">→ --color-dark</span>
+</div>
+<div class="sx-swatch-row">
+  <span class="sx-swatch"
+        style="background: var(--bg-inverse-darker);"></span>
+  <span class="sx-swatch-name">--bg-inverse-darker</span>
+  <span class="sx-swatch-hex">→ --color-dark-50</span>
+</div>
+
+<p class="sx-group-title">Semantic — Text</p>
+
+<div class="sx-swatch-row">
+  <span class="sx-swatch"
+        style="background: var(--text-primary);"></span>
+  <span class="sx-swatch-name">--text-primary</span>
+  <span class="sx-swatch-hex">→ --color-dark</span>
+</div>
+<div class="sx-swatch-row">
+  <span class="sx-swatch"
+        style="background: var(--text-muted);"></span>
+  <span class="sx-swatch-name">--text-muted</span>
+  <span class="sx-swatch-hex">→ --color-light-gray-50</span>
+</div>
+<div class="sx-swatch-row">
+  <span class="sx-swatch"
+        style="background: var(--text-inverse);"></span>
+  <span class="sx-swatch-name">--text-inverse</span>
+  <span class="sx-swatch-hex">→ --color-light-gray</span>
+</div>
+
+<p class="sx-group-title">Semantic — Accents</p>
+
+<div class="sx-swatch-row">
+  <span class="sx-swatch"
+        style="background: var(--accent-primary);"></span>
+  <span class="sx-swatch-name">--accent-primary</span>
+  <span class="sx-swatch-hex">→ --color-orange</span>
+</div>
+<div class="sx-swatch-row">
+  <span class="sx-swatch"
+        style="background: var(--accent-primary-dark);"></span>
+  <span class="sx-swatch-name">--accent-primary-dark</span>
+  <span class="sx-swatch-hex">→ --color-orange-50</span>
+</div>
+<div class="sx-swatch-row">
+  <span class="sx-swatch"
+        style="background: var(--accent-secondary);"></span>
+  <span class="sx-swatch-name">--accent-secondary</span>
+  <span class="sx-swatch-hex">→ --color-red</span>
+</div>
+<div class="sx-swatch-row">
+  <span class="sx-swatch"
+        style="background: var(--accent-sec-dark);"></span>
+  <span class="sx-swatch-name">--accent-sec-dark</span>
+  <span class="sx-swatch-hex">→ --color-red-50</span>
+</div>
+
+<p class="sx-group-title">Semantic — State</p>
+
+<div class="sx-swatch-row">
+  <span class="sx-swatch"
+        style="background: var(--color-danger);"></span>
+  <span class="sx-swatch-name">--color-danger</span>
+  <span class="sx-swatch-hex">→ --color-red</span>
+</div>
+<div class="sx-swatch-row">
+  <span class="sx-swatch"
+        style="background: var(--color-danger-dark);"></span>
+  <span class="sx-swatch-name">--color-danger-dark</span>
+  <span class="sx-swatch-hex">→ --color-red-50</span>
+</div>
+<div class="sx-swatch-row">
+  <span class="sx-swatch"
+        style="background: var(--color-warning);"></span>
+  <span class="sx-swatch-name">--color-warning</span>
+  <span class="sx-swatch-hex">→ --color-orange</span>
+</div>
+<div class="sx-swatch-row">
+  <span class="sx-swatch"
+        style="background: var(--color-warning-dark);"></span>
+  <span class="sx-swatch-name">--color-warning-dark</span>
+  <span class="sx-swatch-hex">→ --color-orange-50</span>
+</div>

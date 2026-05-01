@@ -1,86 +1,114 @@
 ---
 name: edge-grammar
-description: >
-  How to use EdgeGrammar — the append-only cognitive ledger for multi-agent AI sessions in this
-  repository. Use this skill whenever you need to record observations, retrieve past context, or
-  work with any memory operation. Always consult this skill at the start of every session and
-  before any memory-related operation. If the user mentions memory, context, agents, or past
-  work, use this skill.
+description: Edge Grammar is a graph memory system for use with Agentic AI workloads. You use this skill when important events occur such as completing a sprint or failing several times in a loop.
 compatibility:
   mcp: edge-grammar-memory (Node MCP server — Modules/Mcp/index.js)
-  shell: pwsh 7.5+ (fallback only)
 ---
 
 # Edge Grammar
 
-EdgeGrammar is an **append-only cognitive ledger** for multi-agent AI systems.
-Every observation is a typed record linking two `EntityEnum` values via a `RelationEnum`
-under a `WorkEnum` domain. Nothing is ever deleted — only added.
+> Edge Grammar is a graph memory system for use with Agentic AI workloads.
+
+> It is **Append Only JsonL**. The primary use case is compliance systems requiring attribution of agency. 
+
+> Still , the system works equally well as a Collaborative Message bus for agents. 
+
 
 ---
 
-## Preferred: MCP Tools
+## 1. Interfaces
 
-Use the `edge-grammar-memory` MCP tools. They are always available in this session.
-Never use PowerShell for memory operations when the MCP tools are present.
+Edge Grammar provides multiple interface surfaces and are listed here in order of suggested utility.
 
-### Record a memory
+### 1.1 MCP
 
-```
-mcp__edge_grammar__new_memory
-  entity:   Claude
-  work:     AgentMemory
-  toEntity: Architect
-  relation: Collaborates
-  notes:    What happened, what was decided, what failed.
-```
-
-### Retrieve memories
-
-```
-mcp__edge_grammar__get_memories
-  entity: Claude
-  count:  10
-```
-
-**Rules:**
-- Save failures to memory *before* asking what to do next — a failure is a requirement.
-- `count` is optional. Default is 10.
+All custom mcp in Claude Code are prefixed with mcp__`<serverName>`__ . 
+The prefix will be omitted here for brevity.
 
 ---
 
-## Fallback: PowerShell
+#### 1.2 `get_memories` — retrieve memories for one entity
 
-Use only when the MCP server is not connected.
+```
+get_memories
+  entity:  Claude              # required — Claude, Architect, Gemini, …
+  count:   10                  # optional — default 10, max 10000
+  work:    Collab              # optional — filter by work domain
+```
+
+---
+
+#### 1.3 `new_memory` — write a memory
+
+```
+new_memory
+  entity:   Claude             # who is recording
+  work:     AgentMemory        # work domain
+  toEntity: Architect          # who the memory connects to
+  relation: Collaborates       # nature of the link
+  notes:    What happened.     # what actually matters. This should be comprehensive and verbose.
+```
+
+---
+
+#### 1.4 `get_collabs` — read the Collab bus
+
+Returns all `Work=Collab` edges across **all** entity directories, merged newest-first.
+
+```
+get_collabs
+  count: 10 # optional — default 5, max 10000
+```
+
+---
+
+#### 1.5 `new_collab` — write to the Collab bus
+
+Proxies `new_memory` but fixes `Edge.Work` to `Collab`.
+
+```
+new_collab
+  entity:   Claude             # who is writing — always your named entity
+  work:     AgentMemory        # domain of the work being discussed
+  toEntity: Gemini             # who you are collaborating with
+  relation: Proposes           # conversational move
+  notes:    Your position.     # the actual message or response
+```
+
+---
+
+#### 1.6 Rules
+
+- Save failures to memory **before** asking what to do next — a failure is a requirement.
+- Always call `get_collabs` before writing to the Collab bus — never write blind.
+- Write as your named entity (`Claude`, `Gemini`, `Qwen`) — never `Agent` or a generic name.
+
+## 2. Powershell
+
+> The Powershell and Csharp interface is the foundational rock solid implementation.
+
+> See `references/Doc/*` for all of the available Powershell functions.
+
+> The Entire AgentMemory module code is also available in references. 
+
+### 2.1 Instrospection
 
 ```powershell
-New-Memory -Save `
-    -Entity    Claude `
-    -Work      AgentMemory `
-    -ToEntity  Architect `
-    -Relation  Collaborates `
-    -Notes @"
-One concise sentence per line.
-"@
+Get-Command -Module EdgeGrammar -Syntax
 ```
 
----
+> Yields
 
-## Typed Enum Values
-
-Full enum definitions are in `references/Dto/`.
-
-| Enum           | Values (partial)                                              |
-|----------------|---------------------------------------------------------------|
-| `EntityEnum`   | Claude, Architect, Gemini, Grok, GPT, Human, Self, System, Agent, Codex |
-| `RelationEnum` | Learns, Delivers, Collaborates, Fixes, Documents, Implements, … |
-| `WorkEnum`     | GloriousFailure, Plan, AgentMemory, ModelContextProtocol, Security, … |
-
----
-
-## Reference Files
-
-| File                                      | When to read                            |
-|-------------------------------------------|-----------------------------------------|
-| `references/AgentMemory/AgentMemory.psm1` | Full PowerShell function signatures     |
-| `references/Dto/*.cs`                     | Complete enum values                    |
+- Get-Command -Module EdgeGrammar -Syntax
+- Get-MemoryByEntity [[-Entity] <EntityEnum>] [[-Count] <int>] [<CommonParameters>]
+- Get-MemoryContext [[-Entities] <EntityEnum[]>] [[-Count] <int>] [[-OutFile] <string>] [<CommonParameters>]
+- Get-MemorySummary [<CommonParameters>]
+- Get-MemoryWorkDistribution [<CommonParameters>]
+- Measure-MemoryRelation [<CommonParameters>]
+- Measure-MemoryStatistic [<CommonParameters>]
+- New-Memory [[-Entity] <EntityEnum>] [[-Work] <WorkEnum>] [[-ToEntity] <EntityEnum>] [[-Relation] <RelationEnum>] [[-Notes] <string[]>] -Save [<CommonParameters>]
+- Search-Memory [-Pattern] <string> [-Entity <EntityEnum[]>] [-Work <WorkEnum>] [-Relation <RelationEnum>] [-MaxPerEntity <int>] [-CaseSensitive] [-SimpleMatch] [<CommonParameters>]
+- Sync-AgentConfig [-Entity] <EntityEnum> [<CommonParameters>]
+- Sync-ClaudeJson [<CommonParameters>]
+- Sync-Profile [<CommonParameters>]
+- Sync-Skill [-SkillName] <string> [<CommonParameters>]

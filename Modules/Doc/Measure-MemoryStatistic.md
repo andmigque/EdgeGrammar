@@ -8,7 +8,7 @@ schema: 2.0.0
 # Measure-MemoryStatistic
 
 ## SYNOPSIS
-{{ Fill in the Synopsis }}
+Calculates note-length statistics for saved memories.
 
 ## SYNTAX
 
@@ -17,16 +17,16 @@ Measure-MemoryStatistic [-ProgressAction <ActionPreference>] [<CommonParameters>
 ```
 
 ## DESCRIPTION
-{{ Fill in the Description }}
+Loads recent memories across all entities, measures the total character length of each note set,
+and returns aggregate statistics including mean, standard deviation, median, and percentiles.
 
 ## EXAMPLES
 
-### Example 1
-```powershell
-PS C:\> {{ Add example code here }}
+### EXAMPLE 1
 ```
-
-{{ Add example description here }}
+Measure-MemoryStatistic
+Returns a single object that summarizes memory note lengths across the ledger.
+```
 
 ## PARAMETERS
 
@@ -50,11 +50,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### None
-
 ## OUTPUTS
 
-### System.Object
+### System.Management.Automation.PSCustomObject
 ## NOTES
 
 ## RELATED LINKS

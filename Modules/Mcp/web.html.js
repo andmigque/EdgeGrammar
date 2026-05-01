@@ -1,4 +1,4 @@
-export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOTNET_EPOCH_OFFSET }) {
+export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOTNET_EPOCH_OFFSET, SYSTEM_PROMPT }) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -42,7 +42,7 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
   .btn-save:hover{border-color:#7fba00;color:#7fba00}
   .card-json{background:none;border:none;color:#444;cursor:pointer;font:inherit;font-size:.72rem;padding:0 .3rem;line-height:1;flex-shrink:0}
   .card-json:hover{color:#7fba00}
-  .layout{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;flex:1;min-height:0}
+  .layout{display:grid;grid-template-columns:1fr 2fr;gap:1.5rem;flex:1;min-height:0}
   .left{order:2;min-width:0;overflow-y:auto;height:100%;padding-left:1rem;padding-right:1rem}.right{order:1;min-width:0;overflow-y:auto;height:100%;padding-left:1rem;padding-right:1rem}
   @media(min-width:992px){
     .left{order:1}.right{order:2}
@@ -54,6 +54,8 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
   .tabs{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.2rem}
   .tab{background:#1a1a1a;border:1px solid #333;color:#888;padding:.35rem .9rem;cursor:pointer;font:inherit;font-size:.85rem}
   .tab.active{border-color:#7fba00;color:#7fba00}
+  .tab.collab-tab{border-color:#2a3a4a;color:#5a8aa0}
+  .tab.collab-tab.active{border-color:#61afef;color:#61afef}
   .panel{display:none}.panel.active{display:block}
   .card{background:#141414;border:1px solid #222;padding:.9rem 1rem;margin-bottom:.7rem;border-radius:2px}
   .card-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.4rem}
@@ -68,7 +70,7 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
   .card-relation span.relation{color:#7fba00}
   .card-relation span.entity{color:#90c520}
   .card-relation span.work{color:#a0d020}
-  form{background:#141414;border:1px solid #333;padding:0.7rem;display:grid;gap:.7rem}
+  form{background:#141414;border:1px solid #333;padding:1rem;display:grid;gap:.7rem;margin-bottom:1rem}
   form h2{font-size:.85rem;color:#7fba00;margin-bottom:.4rem}
   .selects{display:flex;flex-wrap:wrap;gap:.5rem}
   .selects select{flex:1 1 120px;min-width:0;width:0}
@@ -90,17 +92,24 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
   .CodeMirror-cursor{border-left:2px solid #ccc !important}
   .editor-preview{background:#111;color:#ccc;font-family:monospace;font-size:.82rem}
   .editor-statusbar{display:none}
-  ::-webkit-scrollbar{width:8px;height:8px}
-  ::-webkit-scrollbar-track{background:#0d0d0d}
-  ::-webkit-scrollbar-thumb{background:#333;border-radius:4px}
-  ::-webkit-scrollbar-thumb:hover{background:#7fba00}
-  * {scrollbar-width:thin;scrollbar-color:#333 #0d0d0d}
+  ::-webkit-scrollbar{display:none}
+  * {scrollbar-width:none}
   @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 </style>
 </head>
 <body>
 <div class="h1-row">
   <h1>EdgeGrammar</h1>
+  <div style="font-size:.68rem;color:#444;font-family:monospace;display:flex;flex-wrap:wrap;gap:.6rem 1.1rem;align-items:center;flex:1;padding:0 1.2rem">
+    <span>^&#8679;J <span style="color:#333">notes</span></span>
+    <span>^&#8679;K <span style="color:#333">chat</span></span>
+    <span>^&#8679;C <span style="color:#333">collab</span></span>
+    <span>^&#8679;G <span style="color:#333">graph</span></span>
+    <span>^&#8679;H <span style="color:#333">hide</span></span>
+    <span>^&#8679;&#8629; <span style="color:#333">save</span></span>
+    <span>^&#8679;&#8593; <span style="color:#333">scroll up</span></span>
+    <span>^&#8679;&#8595; <span style="color:#333">scroll down</span></span>
+  </div>
   <button class="ham" id="ham-btn">&#9776;</button>
 </div>
 
@@ -111,6 +120,16 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
     <button class="sidebar-close" id="sidebar-close">&#215;</button>
   </div>
   <div class="sidebar-body" id="sidebar-body"></div>
+</div>
+
+<div class="json-overlay" id="sysprompt-overlay">
+  <div class="json-modal">
+    <div class="json-modal-head">
+      <span>SYSTEM PROMPT</span>
+      <button class="json-close" id="sysprompt-close">&#215;</button>
+    </div>
+    <pre id="sysprompt-pre">${SYSTEM_PROMPT.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>
+  </div>
 </div>
 
 <div class="json-overlay" id="json-overlay">
@@ -125,8 +144,23 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
 
 <div class="layout">
   <div class="left">
+    <form id="form">
+      <h2>Memory</h2>
+      <div class="selects">
+        <select name="entity">${ENTITIES.map(e => `<option${e === "Architect" ? " selected" : ""}>${e}</option>`).join("")}</select>
+        <select name="work">${WORKS.map(w => `<option${w === "Plan" ? " selected" : ""}>${w}</option>`).join("")}</select>
+        <select name="toEntity">${ENTITIES.map(e => `<option${e === "Agent" ? " selected" : ""}>${e}</option>`).join("")}</select>
+        <select name="relation">${RELATIONS.map(r => `<option${r === "Thinks" ? " selected" : ""}>${r}</option>`).join("")}</select>
+      </div>
+      <label style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:#888;cursor:pointer">
+        <input type="checkbox" name="collab" value="1" style="width:auto;accent-color:#7fba00"> Collab
+      </label>
+      <textarea name="notes" placeholder="Notes\u2026"></textarea>
+      <button type="submit">Save</button>
+    </form>
     <div class="tabs" id="tabs">
       ${ENTITIES.map((e, i) => `<button class="tab${i === 0 ? " active" : ""}" data-entity="${e}">${e}</button>`).join("\n      ")}
+      <button class="tab collab-tab" data-entity="Collab">Collab</button>
     </div>
     <div class="panel active" id="panel-combined">
       <div class="count" style="display:flex;align-items:center;gap:1rem">
@@ -134,61 +168,38 @@ export function buildHTML({ ENTITIES, WORKS, RELATIONS, CENTURY_BEGIN_TICKS, DOT
           Show: <input type="number" id="combined-limit" value="30" style="width:50px;padding:2px 4px"> records
         </div>
         <label style="color:#888;cursor:pointer;display:flex;align-items:center">
-          <input type="checkbox" id="hide-records" style="margin-right:0.3rem"> Hide
+          <input type="checkbox" id="hide-records" checked style="margin-right:0.3rem"> Hide
         </label>
         <label style="color:#888;cursor:pointer;display:flex;align-items:center">
           <input type="checkbox" id="show-graph" style="margin-right:0.3rem"> Graph
-        </label>
-        <label style="color:#888;cursor:pointer;display:flex;align-items:center">
-          <input type="checkbox" id="show-chat" style="margin-right:0.3rem"> Chat
         </label>
         <select id="filter-relation" style="background:#0d0d0d;border:1px solid #333;color:#888;padding:.25rem .5rem;font:inherit;font-size:.78rem;cursor:pointer">
           <option value="">— relation —</option>
           ${RELATIONS.map(r => `<option value="${r}">${r}</option>`).join("")}
         </select>
         <button class="btn-save" id="btn-save">Save</button>
+        <button class="btn-save" id="btn-clear-all">Clear</button>
       </div>
       <div id="graph-panel" style="display:none;position:relative;width:100%;height:480px;background:#141414;border:1px solid #222;margin-bottom:.7rem;cursor:crosshair">
         <svg id="graph-svg" style="width:100%;height:100%;display:block"></svg>
       </div>
-      <div id="chat-panel" style="display:none;flex-direction:column;background:#141414;border:1px solid #222;margin-bottom:.7rem">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem .75rem;border-bottom:1px solid #222;flex-shrink:0">
-          <span style="color:#7fba00;font-size:.75rem;letter-spacing:.05em">GEMINI CHAT</span>
-          <button id="chat-clear" style="background:none;border:1px solid #333;color:#555;padding:.15rem .6rem;font:inherit;font-size:.72rem;cursor:pointer">clear</button>
-        </div>
-        <div id="chat-messages" style="height:340px;overflow-y:auto;padding:.75rem;display:flex;flex-direction:column;gap:.6rem"></div>
-        <div style="display:flex;gap:.5rem;padding:.5rem .75rem;border-top:1px solid #222;flex-shrink:0">
-          <textarea id="chat-input" rows="1" placeholder="Message\u2026" style="flex:1;background:#0d0d0d;border:1px solid #333;color:#ccc;padding:.35rem .6rem;font:inherit;font-size:.82rem;resize:none;min-height:34px;max-height:120px;field-sizing:content"></textarea>
-          <button id="chat-send" style="background:#7fba00;color:#000;border:none;padding:.35rem .9rem;font:inherit;font-size:.82rem;cursor:pointer;align-self:flex-end">Send</button>
-        </div>
-      </div>
-      <div id="combined-feed"></div>
+      <div id="combined-feed" style="display:none"></div>
     </div>
   </div>
   <div class="right">
-    <!-- <div id="stats" style="background:#141414;border:1px solid #333;padding:1rem;margin-bottom:1rem;font-size:.75rem">
-      <h2 style="color:#7fba00;margin-bottom:.5rem;font-size:.85rem">Relation Pulse</h2>
-      <div id="stats-feed" style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem"></div>
-    </div> -->
-    <form id="form">
-      <h2>Memory</h2>
-      <div class="selects">
-        <select name="entity">${ENTITIES.map(e => `<option${e === "Architect" ? " selected" : ""}>${e}</option>`).join("")}</select>
-        <select name="work">${WORKS.map(w => `<option${w === "Collab" ? " selected" : ""}>${w}</option>`).join("")}</select>
-        <select name="toEntity">${ENTITIES.map(e => `<option${e === "Agent" ? " selected" : ""}>${e}</option>`).join("")}</select>
-        <select name="relation">${RELATIONS.map(r => `<option${r === "Decides" ? " selected" : ""}>${r}</option>`).join("")}</select>
+    <div id="chat-panel" style="display:flex;flex-direction:column;background:#141414;border:1px solid #222;height:100%;min-height:0">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem .75rem;border-bottom:1px solid #222;flex-shrink:0">
+        <span style="color:#7fba00;font-size:.75rem;letter-spacing:.05em">GEMINI CHAT</span>
+        <div style="display:flex;gap:.4rem;align-items:center">
+          <button id="btn-sysprompt" style="background:none;border:1px solid #333;color:#555;padding:.15rem .6rem;font:inherit;font-size:.72rem;cursor:pointer">system prompt</button>
+          <button id="chat-clear" style="background:none;border:1px solid #333;color:#555;padding:.15rem .6rem;font:inherit;font-size:.72rem;cursor:pointer">clear</button>
+        </div>
       </div>
-      <label style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:#888;cursor:pointer">
-        <input type="checkbox" name="collab" value="1" style="width:auto;accent-color:#7fba00"> Collab
-      </label>
-      <textarea name="notes" placeholder="Notes\u2026"></textarea>
-      <button type="submit">Save</button>
-      <div id="status"></div>
-    </form>
-    <div id="collab" style="background:#141414;border:1px solid #333;padding:1rem;margin-top:1rem">
-      <h2 style="color:#7fba00;margin-bottom:.5rem;font-size:.85rem">Collab</h2>
-      <div class="count" id="collab-count"></div>
-      <div id="collab-feed"></div>
+      <div id="chat-messages" style="flex:1;min-height:0;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:1rem"></div>
+      <div style="display:flex;gap:.5rem;padding:.5rem .75rem;border-top:1px solid #222;flex-shrink:0">
+        <textarea id="chat-input" rows="1" placeholder="Message\u2026" style="flex:1;background:#0d0d0d;border:1px solid #333;color:#ccc;padding:.35rem .6rem;font:inherit;font-size:.82rem;resize:none;min-height:34px;max-height:120px;field-sizing:content"></textarea>
+        <button id="chat-send" style="background:#7fba00;color:#000;border:none;padding:.35rem .9rem;font:inherit;font-size:.82rem;cursor:pointer;align-self:flex-end">Send</button>
+      </div>
     </div>
   </div>
 </div>
@@ -223,25 +234,61 @@ function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(
 
 const selectedEntities = new Set(["Architect"]);
 
+function saveCurrentState() {
+  const state = {
+    entities: Array.from(selectedEntities),
+    limit:    document.getElementById('combined-limit').value,
+    relation: document.getElementById('filter-relation').value,
+    graph:    document.getElementById('show-graph').checked,
+    hide:     document.getElementById('hide-records').checked,
+  };
+  localStorage.setItem('eg-current', JSON.stringify(state));
+}
+
 async function loadCombined() {
-  const entityList = Array.from(selectedEntities).join(',');
-  if (!entityList) return;
-  const limit = document.getElementById('combined-limit').value || 30;
+  const limit = parseInt(document.getElementById('combined-limit').value || 30, 10);
   const relation = document.getElementById('filter-relation').value;
-  let url = '/api/memories?entity=' + entityList + '&count=' + limit;
-  if (relation) url += '&relation=' + encodeURIComponent(relation);
-  const r = await fetch(url);
-  const data = await r.json();
-  const feed = document.getElementById('combined-feed');
-  feed.innerHTML = data.map(renderCard).join('');
+  const collabSelected = selectedEntities.has('Collab');
+  const regularEntities = Array.from(selectedEntities).filter(function(e) { return e !== 'Collab'; });
+
+  if (!regularEntities.length && !collabSelected) return;
+
+  let allData = [];
+
+  if (regularEntities.length) {
+    let url = '/api/memories?entity=' + regularEntities.join(',') + '&count=' + limit;
+    if (relation) url += '&relation=' + encodeURIComponent(relation);
+    const r = await fetch(url);
+    allData.push(...(await r.json()));
+  }
+
+  if (collabSelected) {
+    let url = '/api/memories?entity=' + ENTITIES.join(',') + '&work=Collab&count=' + limit;
+    if (relation) url += '&relation=' + encodeURIComponent(relation);
+    const r = await fetch(url);
+    allData.push(...(await r.json()));
+  }
+
+  // deduplicate, sort newest first, cap at limit
+  const seen = new Set();
+  allData = allData.filter(function(m) {
+    if (seen.has(m.Id)) return false;
+    seen.add(m.Id);
+    return true;
+  });
+  allData.sort(function(a, b) { return b.TickStamp - a.TickStamp; });
+  allData = allData.slice(0, limit);
+
+  document.getElementById('combined-feed').innerHTML = allData.map(renderCard).join('');
 }
 
 document.getElementById('hide-records').addEventListener('change', e => {
   document.getElementById('combined-feed').style.display = e.target.checked ? 'none' : 'block';
+  saveCurrentState();
 });
 
-document.getElementById('combined-limit').addEventListener('change', loadCombined);
-document.getElementById('filter-relation').addEventListener('change', loadCombined);
+document.getElementById('combined-limit').addEventListener('change', function() { loadCombined(); saveCurrentState(); });
+document.getElementById('filter-relation').addEventListener('change', function() { loadCombined(); saveCurrentState(); });
 
 document.getElementById('tabs').addEventListener('click', e => {
   if (!e.target.dataset.entity) return;
@@ -261,6 +308,7 @@ document.getElementById('tabs').addEventListener('click', e => {
     e.target.classList.add('active');
   }
   loadCombined();
+  saveCurrentState();
 });
 
 const mde = new EasyMDE({
@@ -281,12 +329,8 @@ document.getElementById('form').addEventListener('submit', async e => {
   delete body.collab;
   const r = await fetch('/api/memories', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
   if (r.ok) {
-    document.getElementById('status').textContent = 'Saved.';
     mde.value('');
     await loadCombined();
-    await loadCollab();
-  } else {
-    document.getElementById('status').textContent = 'Error: ' + r.status;
   }
 });
 
@@ -299,13 +343,6 @@ async function loadStats() {
     .slice(0, 10)
     .map(s => '<div><span style="color:#7fba00">' + s[1] + '</span> ' + s[0] + '</div>')
     .join('');
-}
-
-async function loadCollab() {
-  const r = await fetch('/api/memories?entity=${ENTITIES.join(",")}&work=Collab&count=30');
-  const data = await r.json();
-  document.getElementById('collab-feed').innerHTML = data.map(renderCard).join('');
-  document.getElementById('collab-count').textContent = data.length + ' records';
 }
 
 // ── Graph ──────────────────────────────────────────────────────────────────
@@ -406,6 +443,7 @@ document.getElementById('show-graph').addEventListener('change', async function(
       renderGraph();
     }
   }
+  saveCurrentState();
 });
 
 document.getElementById('graph-panel').addEventListener('click', function() {
@@ -434,6 +472,13 @@ function showJSON(id) {
   document.getElementById('json-pre').textContent = JSON.stringify(m, null, 2);
   document.getElementById('json-overlay').classList.add('open');
 }
+
+function showStateJSON(ts) {
+  const s = getSavedStates().find(function(x) { return x.ts === ts; });
+  if (!s) return;
+  document.getElementById('json-pre').textContent = JSON.stringify(s, null, 2);
+  document.getElementById('json-overlay').classList.add('open');
+}
 function closeJSON() {
   document.getElementById('json-overlay').classList.remove('open');
 }
@@ -441,8 +486,78 @@ document.getElementById('json-close').addEventListener('click', closeJSON);
 document.getElementById('json-overlay').addEventListener('click', function(e) {
   if (e.target === this) closeJSON();
 });
+
+document.getElementById('btn-sysprompt').addEventListener('click', function() {
+  document.getElementById('sysprompt-overlay').classList.add('open');
+});
+document.getElementById('sysprompt-close').addEventListener('click', function() {
+  document.getElementById('sysprompt-overlay').classList.remove('open');
+});
+document.getElementById('sysprompt-overlay').addEventListener('click', function(e) {
+  if (e.target === this) document.getElementById('sysprompt-overlay').classList.remove('open');
+});
+
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') { closeJSON(); closeSidebar(); }
+  if (e.key === 'Escape') {
+    closeJSON();
+    closeSidebar();
+    document.getElementById('sysprompt-overlay').classList.remove('open');
+    return;
+  }
+
+  const ctrl = e.ctrlKey || e.metaKey;
+  if (!ctrl || !e.shiftKey) return;
+
+  switch (e.key.toLowerCase()) {
+    case 'j': // Focus notes
+      e.preventDefault();
+      mde.codemirror.focus();
+      break;
+
+    case 'k': // Focus chat input
+      e.preventDefault();
+      document.getElementById('chat-input').focus();
+      break;
+
+    case 'c': { // Toggle collab + save memory form
+      e.preventDefault();
+      const cb = document.querySelector('input[name="collab"]');
+      cb.checked = !cb.checked;
+      document.getElementById('form').dispatchEvent(new SubmitEvent('submit', { bubbles: true, cancelable: true }));
+      break;
+    }
+
+    case 'g': { // Toggle graph
+      e.preventDefault();
+      const gCb = document.getElementById('show-graph');
+      gCb.checked = !gCb.checked;
+      gCb.dispatchEvent(new Event('change'));
+      break;
+    }
+
+    case 'h': // Toggle hide records
+      e.preventDefault();
+      const hCb = document.getElementById('hide-records');
+      hCb.checked = !hCb.checked;
+      hCb.dispatchEvent(new Event('change'));
+      break;
+
+    case 'enter': // Submit memory form
+      e.preventDefault();
+      document.getElementById('form').dispatchEvent(new SubmitEvent('submit', { bubbles: true, cancelable: true }));
+      break;
+
+    case 'arrowup': // Scroll active panel up
+    case 'arrowdown': { // Scroll active panel down
+      e.preventDefault();
+      const recordsVisible = document.getElementById('combined-feed').style.display !== 'none';
+      const scrollTarget = recordsVisible
+        ? document.querySelector('.left')
+        : document.getElementById('chat-messages');
+      scrollTarget.scrollBy({ top: e.key === 'ArrowUp' ? -120 : 120, behavior: 'smooth' });
+      break;
+    }
+  }
 });
 
 // ── State Save / Restore ───────────────────────────────────────────────────
@@ -452,26 +567,30 @@ function getState() {
     limit:    document.getElementById('combined-limit').value,
     relation: document.getElementById('filter-relation').value,
     graph:    document.getElementById('show-graph').checked,
+    chat:     chatHistory,
   };
 }
 
-function applyState(s) {
+function clearAll() {
+  // config
   selectedEntities.clear();
+  selectedEntities.add('Architect');
   document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
-  (s.entities || []).forEach(function(e) {
-    selectedEntities.add(e);
-    const tab = document.querySelector('.tab[data-entity="' + e + '"]');
-    if (tab) tab.classList.add('active');
-  });
-  if (s.limit) document.getElementById('combined-limit').value = s.limit;
-  if (s.relation !== undefined) document.getElementById('filter-relation').value = s.relation;
-  const graphCb = document.getElementById('show-graph');
-  const graphPanel = document.getElementById('graph-panel');
-  graphCb.checked = !!s.graph;
-  graphPanel.style.display = s.graph ? 'block' : 'none';
+  const firstTab = document.querySelector('.tab[data-entity="Architect"]');
+  if (firstTab) firstTab.classList.add('active');
+  document.getElementById('combined-limit').value = 30;
+  document.getElementById('filter-relation').value = '';
+  document.getElementById('show-graph').checked = false;
+  document.getElementById('graph-panel').style.display = 'none';
+  // chat
+  chatHistory = [];
+  localStorage.removeItem('eg-chat');
+  localStorage.removeItem('eg-current');
+  document.getElementById('chat-messages').innerHTML = '';
   loadCombined();
-  if (s.graph) { if (graphCache.entities.length === 0) loadGraph(); else renderGraph(); }
 }
+
+document.getElementById('btn-clear-all').addEventListener('click', clearAll);
 
 function getSavedStates() {
   try { return JSON.parse(localStorage.getItem('eg-states') || '[]'); }
@@ -486,8 +605,7 @@ function renderSavedStates() {
     return;
   }
   body.innerHTML = states.map(function(s) {
-    const stateJson = JSON.stringify(s.state).replace(/"/g, '&quot;');
-    return '<div class="state-item" onclick="applyState(' + stateJson + ');closeSidebar()">' +
+    return '<div class="state-item" onclick="showStateJSON(' + s.ts + ')">' +
       '<div><div class="state-name">' + escHtml(s.name) + '</div>' +
       '<div class="state-ts">' + new Date(s.ts).toLocaleString() + '</div></div>' +
       '<button class="state-del" onclick="event.stopPropagation();deleteSavedState(' + s.ts + ')" title="Delete">&#215;</button>' +
@@ -520,15 +638,29 @@ function chatScrollBottom() {
 
 function chatAppend(role, text) {
   const msgs = document.getElementById('chat-messages');
+  const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const isUser = role === 'user';
+
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'display:flex;flex-direction:column;gap:.25rem;' +
+    (isUser ? 'align-self:flex-end;max-width:85%;' : 'align-self:flex-start;width:95%;max-width:95%;');
+
+  const label = document.createElement('div');
+  label.style.cssText = 'font-size:.7rem;color:#555;' + (isUser ? 'text-align:right;' : 'text-align:left;');
+  label.textContent = (isUser ? 'User' : 'Model') + ' \u2022 ' + time;
+
   const div = document.createElement('div');
-  div.style.cssText = 'max-width:85%;padding:.45rem .7rem;font-size:.82rem;white-space:pre-wrap;word-break:break-word;line-height:1.5;' +
-    (role === 'user'
-      ? 'align-self:flex-end;background:#1a1a1a;border:1px solid #333;color:#ccc;'
-      : 'align-self:flex-start;background:#111;border:1px solid #2a2a2a;color:#bbb;');
+  div.style.cssText = 'padding:.65rem .9rem;font-size:.82rem;white-space:pre-wrap;word-break:break-word;line-height:1.6;' +
+    (isUser
+      ? 'background:#1e2a14;border:1px solid #4a6a20;color:#d4e8a0;'
+      : 'background:#141414;border:1px solid #383838;color:#bbb;');
+
   const content = document.createElement('span');
   content.textContent = text;
   div.appendChild(content);
-  msgs.appendChild(div);
+  wrapper.appendChild(label);
+  wrapper.appendChild(div);
+  msgs.appendChild(wrapper);
   chatScrollBottom();
   return { div, content };
 }
@@ -584,15 +716,24 @@ async function chatSend() {
   }
   cursor.remove();
   if (accumulated) chatHistory.push({ role: 'model', content: accumulated });
+  localStorage.setItem('eg-chat', JSON.stringify(chatHistory));
+  if (accumulated) {
+    fetch('/api/memories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        entity:   'Architect',
+        work:     'Collab',
+        toEntity: 'Agent',
+        relation: 'Documents',
+        notes:    'Q: ' + text + '\\n\\nA: ' + accumulated,
+        edgeWork: 'Collab',
+      })
+    });
+  }
   chatStreaming = false;
   sendBtn.disabled = false;
 }
-
-document.getElementById('show-chat').addEventListener('change', function(e) {
-  const panel = document.getElementById('chat-panel');
-  panel.style.display = e.target.checked ? 'flex' : 'none';
-  if (e.target.checked) document.getElementById('chat-input').focus();
-});
 
 document.getElementById('chat-send').addEventListener('click', chatSend);
 
@@ -607,8 +748,45 @@ document.getElementById('chat-clear').addEventListener('click', function() {
 
 document.addEventListener('DOMContentLoaded', () => {
   loadStats();
+
+  // Restore config state
+  try {
+    const cur = JSON.parse(localStorage.getItem('eg-current') || 'null');
+    if (cur) {
+      if (cur.entities && cur.entities.length) {
+        selectedEntities.clear();
+        cur.entities.forEach(function(e) { selectedEntities.add(e); });
+        document.querySelectorAll('.tab').forEach(function(t) {
+          t.classList.toggle('active', selectedEntities.has(t.dataset.entity));
+        });
+      }
+      if (cur.limit) document.getElementById('combined-limit').value = cur.limit;
+      if (cur.relation !== undefined) document.getElementById('filter-relation').value = cur.relation;
+      if (cur.hide) {
+        document.getElementById('hide-records').checked = true;
+        document.getElementById('combined-feed').style.display = 'none';
+      }
+      if (cur.graph) {
+        document.getElementById('show-graph').checked = true;
+        document.getElementById('graph-panel').style.display = 'block';
+        loadGraph();
+      }
+    }
+  } catch(_) {}
+
   loadCombined();
-  loadCollab();
+
+  // Restore chat history
+  try {
+    const saved = JSON.parse(localStorage.getItem('eg-chat') || '[]');
+    if (saved.length) {
+      chatHistory = saved;
+      saved.forEach(function(m) {
+        if (m.role === 'user') chatAppend('user', m.content);
+        else if (m.role === 'model') chatAppend('assistant', m.content);
+      });
+    }
+  } catch(_) {}
 });
 </script>
 </body>

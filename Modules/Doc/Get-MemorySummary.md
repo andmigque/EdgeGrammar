@@ -8,7 +8,7 @@ schema: 2.0.0
 # Get-MemorySummary
 
 ## SYNOPSIS
-{{ Fill in the Synopsis }}
+Counts saved memories for each entity.
 
 ## SYNTAX
 
@@ -17,16 +17,16 @@ Get-MemorySummary [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
-{{ Fill in the Description }}
+Iterates through every EntityEnum value, attempts to load recent memories for each one,
+and returns a simple per-entity count summary.
 
 ## EXAMPLES
 
-### Example 1
-```powershell
-PS C:\> {{ Add example code here }}
+### EXAMPLE 1
 ```
-
-{{ Add example description here }}
+Get-MemorySummary
+Returns one summary record per entity with the total number of retrieved memories.
+```
 
 ## PARAMETERS
 
@@ -50,11 +50,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### None
-
 ## OUTPUTS
 
-### System.Object
+### System.Management.Automation.PSCustomObject
 ## NOTES
 
 ## RELATED LINKS

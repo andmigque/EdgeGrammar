@@ -1,0 +1,335 @@
+<style>
+  :root {
+    --color-purple:      #240747;
+    --color-red:         #eb2632;
+    --color-peach:       #f0ab8d;
+    --color-cream:       #f6e4ad;
+
+    --color-purple-70:   #240747b3;
+    --color-red-70:      #eb2632b3;
+    --color-peach-70:    #f0ab8db3;
+    --color-cream-70:    #f6e4adb3;
+
+    --color-purple-30:   #2407474d;
+    --color-red-30:      #eb26324d;
+    --color-peach-30:    #f0ab8d4d;
+    --color-cream-30:    #f6e4ad4d;
+
+    --color-white:       #ffffff;
+    --color-black:       #0d021c;
+    --color-gray-100:    #f4f1f7;
+    --color-gray-400:    #a69ab5;
+    --color-gray-700:    #4a3366;
+    --color-success:     #2fa861;
+    --color-info:        #3685b5;
+
+    --bg-page:           var(--color-gray-100);
+    --bg-surface:        var(--color-white);
+    --bg-surface-warm:   var(--color-cream);
+    --bg-inverse:        var(--color-purple);
+
+    --text-main:         var(--color-purple);
+    --text-muted:        var(--color-gray-700);
+    --text-inverse:      var(--color-cream);
+
+    --border-light:      var(--color-purple-30);
+    --border-strong:     var(--color-purple-70);
+
+    --btn-primary-bg:    var(--color-red);
+    --btn-primary-text:  var(--color-white);
+    --btn-primary-hover: var(--color-red-70);
+
+    --btn-secondary-bg:  var(--color-peach);
+    --btn-secondary-text:var(--color-purple);
+    --btn-secondary-hov: var(--color-peach-70);
+
+    --shadow-color:      var(--color-purple-30);
+    --focus-ring:        var(--color-peach);
+  }
+
+  .sx2-swatch {
+    width: 56px;
+    height: 56px;
+    border-radius: 6px;
+    border: 1px solid rgba(0,0,0,.12);
+    flex-shrink: 0;
+  }
+  .sx2-swatch-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 10px;
+  }
+  .sx2-swatch-name {
+    font-family: monospace;
+    font-size: .82rem;
+    min-width: 220px;
+  }
+  .sx2-swatch-hex {
+    font-family: monospace;
+    font-size: .75rem;
+    color: #6c757d;
+  }
+  .sx2-group-title {
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #6c757d;
+    margin: 1.5rem 0 .6rem;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: .3rem;
+  }
+</style>
+
+<!-- Brand Base Colors -->
+<p class="sx2-group-title">Brand Base Colors</p>
+
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--color-purple);"></span>
+  <span class="sx2-swatch-name">--color-purple</span>
+  <span class="sx2-swatch-hex">#240747 — Deep Indigo</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--color-red);"></span>
+  <span class="sx2-swatch-name">--color-red</span>
+  <span class="sx2-swatch-hex">#eb2632 — Vibrant Red</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--color-peach);"></span>
+  <span class="sx2-swatch-name">--color-peach</span>
+  <span class="sx2-swatch-hex">#f0ab8d — Soft Peach</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--color-cream);"></span>
+  <span class="sx2-swatch-name">--color-cream</span>
+  <span class="sx2-swatch-hex">#f6e4ad — Pale Cream</span>
+</div>
+
+<!-- Opacity Variants — 70% -->
+<p class="sx2-group-title">Opacity Variants — 70%</p>
+
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--color-purple-70);"></span>
+  <span class="sx2-swatch-name">--color-purple-70</span>
+  <span class="sx2-swatch-hex">#240747b3</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--color-red-70);"></span>
+  <span class="sx2-swatch-name">--color-red-70</span>
+  <span class="sx2-swatch-hex">#eb2632b3</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--color-peach-70);"></span>
+  <span class="sx2-swatch-name">--color-peach-70</span>
+  <span class="sx2-swatch-hex">#f0ab8db3</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--color-cream-70);"></span>
+  <span class="sx2-swatch-name">--color-cream-70</span>
+  <span class="sx2-swatch-hex">#f6e4adb3</span>
+</div>
+
+<!-- Opacity Variants — 30% -->
+<p class="sx2-group-title">Opacity Variants — 30%</p>
+
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--color-purple-30);"></span>
+  <span class="sx2-swatch-name">--color-purple-30</span>
+  <span class="sx2-swatch-hex">#2407474d</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--color-red-30);"></span>
+  <span class="sx2-swatch-name">--color-red-30</span>
+  <span class="sx2-swatch-hex">#eb26324d</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--color-peach-30);"></span>
+  <span class="sx2-swatch-name">--color-peach-30</span>
+  <span class="sx2-swatch-hex">#f0ab8d4d</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--color-cream-30);"></span>
+  <span class="sx2-swatch-name">--color-cream-30</span>
+  <span class="sx2-swatch-hex">#f6e4ad4d</span>
+</div>
+
+<!-- Neutrals & Utility -->
+<p class="sx2-group-title">Neutrals &amp; Utility</p>
+
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--color-white);"></span>
+  <span class="sx2-swatch-name">--color-white</span>
+  <span class="sx2-swatch-hex">#ffffff</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--color-black);"></span>
+  <span class="sx2-swatch-name">--color-black</span>
+  <span class="sx2-swatch-hex">#0d021c — Near-black purple</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--color-gray-100);"></span>
+  <span class="sx2-swatch-name">--color-gray-100</span>
+  <span class="sx2-swatch-hex">#f4f1f7 — Light cool-gray</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--color-gray-400);"></span>
+  <span class="sx2-swatch-name">--color-gray-400</span>
+  <span class="sx2-swatch-hex">#a69ab5 — Mid-gray</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--color-gray-700);"></span>
+  <span class="sx2-swatch-name">--color-gray-700</span>
+  <span class="sx2-swatch-hex">#4a3366 — Dark gray</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--color-success);"></span>
+  <span class="sx2-swatch-name">--color-success</span>
+  <span class="sx2-swatch-hex">#2fa861 — Warm Emerald</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--color-info);"></span>
+  <span class="sx2-swatch-name">--color-info</span>
+  <span class="sx2-swatch-hex">#3685b5 — Muted Ocean Blue</span>
+</div>
+
+<!-- Semantic — Backgrounds -->
+<p class="sx2-group-title">Semantic — Backgrounds</p>
+
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--bg-page);"></span>
+  <span class="sx2-swatch-name">--bg-page</span>
+  <span class="sx2-swatch-hex">→ --color-gray-100</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--bg-surface);"></span>
+  <span class="sx2-swatch-name">--bg-surface</span>
+  <span class="sx2-swatch-hex">→ --color-white</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--bg-surface-warm);"></span>
+  <span class="sx2-swatch-name">--bg-surface-warm</span>
+  <span class="sx2-swatch-hex">→ --color-cream</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--bg-inverse);"></span>
+  <span class="sx2-swatch-name">--bg-inverse</span>
+  <span class="sx2-swatch-hex">→ --color-purple</span>
+</div>
+
+<!-- Semantic — Typography -->
+<p class="sx2-group-title">Semantic — Typography</p>
+
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--text-main);"></span>
+  <span class="sx2-swatch-name">--text-main</span>
+  <span class="sx2-swatch-hex">→ --color-purple</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--text-muted);"></span>
+  <span class="sx2-swatch-name">--text-muted</span>
+  <span class="sx2-swatch-hex">→ --color-gray-700</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--text-inverse);"></span>
+  <span class="sx2-swatch-name">--text-inverse</span>
+  <span class="sx2-swatch-hex">→ --color-cream</span>
+</div>
+
+<!-- Semantic — Borders -->
+<p class="sx2-group-title">Semantic — Borders</p>
+
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--border-light);"></span>
+  <span class="sx2-swatch-name">--border-light</span>
+  <span class="sx2-swatch-hex">→ --color-purple-30</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--border-strong);"></span>
+  <span class="sx2-swatch-name">--border-strong</span>
+  <span class="sx2-swatch-hex">→ --color-purple-70</span>
+</div>
+
+<!-- Semantic — Buttons -->
+<p class="sx2-group-title">Semantic — Buttons</p>
+
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--btn-primary-bg);"></span>
+  <span class="sx2-swatch-name">--btn-primary-bg</span>
+  <span class="sx2-swatch-hex">→ --color-red</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--btn-primary-text);"></span>
+  <span class="sx2-swatch-name">--btn-primary-text</span>
+  <span class="sx2-swatch-hex">→ --color-white</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--btn-primary-hover);"></span>
+  <span class="sx2-swatch-name">--btn-primary-hover</span>
+  <span class="sx2-swatch-hex">→ --color-red-70</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--btn-secondary-bg);"></span>
+  <span class="sx2-swatch-name">--btn-secondary-bg</span>
+  <span class="sx2-swatch-hex">→ --color-peach</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--btn-secondary-text);"></span>
+  <span class="sx2-swatch-name">--btn-secondary-text</span>
+  <span class="sx2-swatch-hex">→ --color-purple</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--btn-secondary-hov);"></span>
+  <span class="sx2-swatch-name">--btn-secondary-hov</span>
+  <span class="sx2-swatch-hex">→ --color-peach-70</span>
+</div>
+
+<!-- Semantic — Focus & Shadow -->
+<p class="sx2-group-title">Semantic — Focus &amp; Shadow</p>
+
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--shadow-color);"></span>
+  <span class="sx2-swatch-name">--shadow-color</span>
+  <span class="sx2-swatch-hex">→ --color-purple-30</span>
+</div>
+<div class="sx2-swatch-row">
+  <span class="sx2-swatch"
+        style="background: var(--focus-ring);"></span>
+  <span class="sx2-swatch-name">--focus-ring</span>
+  <span class="sx2-swatch-hex">→ --color-peach</span>
+</div>

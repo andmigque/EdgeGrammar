@@ -1,0 +1,169 @@
+<!-- 1. Form Grid — two columns, no labels -->
+<h6 class="text-muted mt-2 mb-2">1. Form Grid</h6>
+<div class="row mb-4">
+  <div class="col">
+    <input type="text"
+           class="form-control"
+           placeholder="First name"
+           aria-label="First name">
+  </div>
+  <div class="col">
+    <input type="text"
+           class="form-control"
+           placeholder="Last name"
+           aria-label="Last name">
+  </div>
+</div>
+
+<!-- 2. Grid with Gutters — full address form -->
+<h6 class="text-muted mb-2">2. Grid with Gutters</h6>
+<form class="row g-3 mb-4">
+  <div class="col-md-6">
+    <label for="layoutEmail" class="form-label">Email</label>
+    <input type="email" class="form-control" id="layoutEmail">
+  </div>
+  <div class="col-md-6">
+    <label for="layoutPassword" class="form-label">Password</label>
+    <input type="password" class="form-control" id="layoutPassword">
+  </div>
+  <div class="col-12">
+    <label for="layoutAddr1" class="form-label">Address</label>
+    <input type="text"
+           class="form-control"
+           id="layoutAddr1"
+           placeholder="1234 Main St">
+  </div>
+  <div class="col-12">
+    <label for="layoutAddr2" class="form-label">Address 2</label>
+    <input type="text"
+           class="form-control"
+           id="layoutAddr2"
+           placeholder="Apartment, studio, or floor">
+  </div>
+  <div class="col-md-6">
+    <label for="layoutCity" class="form-label">City</label>
+    <input type="text" class="form-control" id="layoutCity">
+  </div>
+  <div class="col-md-4">
+    <label for="layoutState" class="form-label">State</label>
+    <select id="layoutState" class="form-select">
+      <option selected>Choose...</option>
+      <option>Ohio</option>
+      <option>Kentucky</option>
+    </select>
+  </div>
+  <div class="col-md-2">
+    <label for="layoutZip" class="form-label">Zip</label>
+    <input type="text" class="form-control" id="layoutZip">
+  </div>
+  <div class="col-12">
+    <div class="form-check">
+      <input class="form-check-input"
+             type="checkbox"
+             id="layoutCheck">
+      <label class="form-check-label" for="layoutCheck">
+        Check me out
+      </label>
+    </div>
+  </div>
+  <div class="col-12">
+    <button type="submit" class="btn btn-primary">Sign in</button>
+  </div>
+</form>
+
+<!-- 3. Horizontal Form — labels left, inputs right -->
+<h6 class="text-muted mb-2">3. Horizontal Form</h6>
+<form class="mb-4">
+  <div class="row mb-3">
+    <label for="hzEmail"
+           class="col-sm-2 col-form-label">Email</label>
+    <div class="col-sm-10">
+      <input type="email" class="form-control" id="hzEmail">
+    </div>
+  </div>
+  <div class="row mb-3">
+    <label for="hzPassword"
+           class="col-sm-2 col-form-label">Password</label>
+    <div class="col-sm-10">
+      <input type="password" class="form-control" id="hzPassword">
+    </div>
+  </div>
+  <fieldset class="row mb-3">
+    <legend class="col-form-label col-sm-2 pt-0">Radios</legend>
+    <div class="col-sm-10">
+      <div class="form-check">
+        <input class="form-check-input"
+               type="radio"
+               name="hzRadios"
+               id="hzRadio1"
+               value="option1"
+               checked>
+        <label class="form-check-label" for="hzRadio1">
+          First radio
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input"
+               type="radio"
+               name="hzRadios"
+               id="hzRadio2"
+               value="option2">
+        <label class="form-check-label" for="hzRadio2">
+          Second radio
+        </label>
+      </div>
+    </div>
+  </fieldset>
+  <div class="row mb-3">
+    <div class="col-sm-10 offset-sm-2">
+      <div class="form-check">
+        <input class="form-check-input"
+               type="checkbox"
+               id="hzCheckbox">
+        <label class="form-check-label" for="hzCheckbox">
+          Example checkbox
+        </label>
+      </div>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary">Sign in</button>
+</form>
+
+<!-- 4. Inline Form — all controls on one row -->
+<h6 class="text-muted mb-2">4. Inline Form</h6>
+<form class="row row-cols-lg-auto g-3 align-items-center">
+  <div class="col-12">
+    <label class="visually-hidden"
+           for="inlineUsername">Username</label>
+    <div class="input-group">
+      <div class="input-group-text">@</div>
+      <input type="text"
+             class="form-control"
+             id="inlineUsername"
+             placeholder="Username">
+    </div>
+  </div>
+  <div class="col-12">
+    <label class="visually-hidden"
+           for="inlinePref">Preference</label>
+    <select class="form-select" id="inlinePref">
+      <option selected>Choose...</option>
+      <option value="1">One</option>
+      <option value="2">Two</option>
+      <option value="3">Three</option>
+    </select>
+  </div>
+  <div class="col-12">
+    <div class="form-check">
+      <input class="form-check-input"
+             type="checkbox"
+             id="inlineRemember">
+      <label class="form-check-label" for="inlineRemember">
+        Remember me
+      </label>
+    </div>
+  </div>
+  <div class="col-12">
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </div>
+</form>

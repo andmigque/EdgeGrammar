@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SharpeX</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="/css/root.css" />
+    <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/htmx-ext-preload@2.1.2" integrity="sha384-PRIcY6hH1Y5784C76/Y8SqLyTanY9rnI3B8F3+hKZFNED55hsEqMJyqWhp95lgfk" crossorigin="anonymous"></script>
+    <!--<script src="https://unpkg.com/htmx-ext-class-tools@2.0.1/class-tools.js"></script>
+    <scirpt src="https://cdn.jsdelivr.net/npm/monaco-editor/min/vs/loader.js"></scirpt>-->
+</head>
+
+<body style="padding-top: 56px;">
+    <div id="sx-navbar" hx-get="/partial/sx-navbar.html" hx-trigger="load" hx-swap="innerHTML">
+    </div>
+    
+    <div id="sx-lab-container" class="container" hx-get="/partial/sx-user-pass-form.html" hx-trigger="load"
+        hx-swap="innerHTML">
+    </div>
+</body>
+
+</html>

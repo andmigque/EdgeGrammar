@@ -1,0 +1,20 @@
+.sx-nav {
+    padding-top: 2px;
+}
+
+.sx-nav-link.nav-link {
+    
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    font-size: 0.85rem;
+    color: #3ab8f5 !important;
+}
+
+.sx-nav-link.nav-link:hover {
+    color: #e8f4ff !important;
+}
+
+.sx-nav-separator {
+    border-right: 1px solid slategrey;
+    padding-right: 10px;
+}
