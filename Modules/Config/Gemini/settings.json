@@ -22,5 +22,11 @@
       "hideModelInfo": false
     }
   },
-  "hooks": {}
+  "hooks": {},
+  "mcpServers": {
+    "EdgeGrammar": {
+      "command": "",
+      "args": []
+    }
+  }
 }

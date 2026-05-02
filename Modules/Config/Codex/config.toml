@@ -1,0 +1,39 @@
+model = "gpt-5.5"
+model_reasoning_effort = "medium"
+personality = "friendly"
+web_search = "live"
+approvals_reviewer = "user"
+service_tier = "fast"
+sandbox_mode = "workspace-write"
+
+[features]
+shell_tool = true
+unified_exec = true
+shell_snapshot = false
+multi_agent = false
+powershell_utf8 = true
+
+
+[sandbox_workspace_write]
+writable_roots = ['~EdgeGrammar\agentmemory\Codex']
+
+[projects.'\\?\~\Develop\PowerNixx']
+trust_level = "untrusted"
+
+[projects.'\\?\~\Develop\CMMCPower']
+trust_level = "untrusted"
+
+[projects.'\\?\~\Develop\EdgeGrammar']
+trust_level = "trusted"
+
+[projects.'\\?\~\Develop\SharpeX']
+trust_level = "trusted"
+
+[mcp_servers.EdgeGrammar]
+command = "~\Develop\EdgeGrammar\bin\Release\net10.0\win-x64\EdgeGrammar.exe"
+
+[windows]
+sandbox = "unelevated"
+
+[tui.model_availability_nux]
+"gpt-5.5" = 4
