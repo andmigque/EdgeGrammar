@@ -674,7 +674,7 @@ function Get-MemoryContext {
         $context = @"
 # $($_.Entity)
 
-On $([EdgeGrammar.Modules.Unit.TickStampUnit]::new().ToUtcDateTime($_.TickStamp)).
+On $([EdgeGrammar.Modules.Unit.TickStampUnit]::ToUtcDateTime($_.TickStamp)).
 $($_.Entity) was working on $($_.Work) with $($_.Edge.ToEntity).
 Their relationship on this work was $($_.Edge.Relation).
 Here is what $($_.Entity) had to say about that day:

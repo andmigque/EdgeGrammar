@@ -9,12 +9,14 @@ compatibility:
 
 > Edge Grammar is a graph memory system for use with Agentic AI workloads.
 
-> It is **Append Only JsonL**. The primary use case is compliance systems requiring attribution of agency. 
+> It is **Append Only JsonL**. The primary use case is compliance systems requiring attribution of agency.
 
-> Still , the system works equally well as a Collaborative Message bus for agents. 
+> Still , the system works equally well as a Collaborative Message bus for agents.
 
 
 ---
+
+# **DEPRECATED**
 
 ## 1. Interfaces
 
@@ -22,7 +24,7 @@ Edge Grammar provides multiple interface surfaces and are listed here in order o
 
 ### 1.1 MCP
 
-All custom mcp in Claude Code are prefixed with mcp__`<serverName>`__ . 
+All custom mcp in Claude Code are prefixed with mcp__`<serverName>`__ .
 The prefix will be omitted here for brevity.
 
 ---
@@ -89,7 +91,7 @@ new_collab
 
 > See `references/Doc/*` for all of the available Powershell functions.
 
-> The Entire AgentMemory module code is also available in references. 
+> The Entire AgentMemory module code is also available in references.
 
 ### 2.1 Instrospection
 

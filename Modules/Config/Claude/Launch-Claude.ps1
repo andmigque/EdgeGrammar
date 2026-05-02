@@ -1,5 +1,5 @@
-$systemPromptFile   = Join-Path $PSScriptRoot "..\SYSTEM.md"
-$contextOutput = Get-MemoryContext -Entities @('Claude','Architect','Gemini','Agent') -Count 3
+$systemPromptFile   = Join-Path -Path "$PSScriptRoot" -ChildPath "..\SYSTEM.md"
+$contextOutput = Get-MemoryContext -Entities @('Claude','Architect') -Count 10
 
 $dynamicSystemPrompt = @"
 ---
