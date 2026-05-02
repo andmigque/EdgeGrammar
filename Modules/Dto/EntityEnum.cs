@@ -11,6 +11,7 @@ public enum EntityEnum
     Self,
     System,
     Agent,
-    Codex
+    Codex,
+    Qwen
 }
 

@@ -7,7 +7,6 @@ namespace EdgeGrammar.Modules.Dto;
 public enum WorkEnum
 {
     PowerNixxServer,
-
     SystemPrompt,
     Npm,
     Pester,

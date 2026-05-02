@@ -45,5 +45,6 @@ public enum RelationEnum
     Integrates,
     Delegates,
     Proposes,
-    Researches
+    Researches,
+    Retrospects
 }
