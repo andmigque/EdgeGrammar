@@ -19,18 +19,30 @@ public class EdgeGrammarMcp
 
     [McpServerTool]
     [Description("""
-            Powershell:
-                Example:
-                    Get-Memories -Entity 'Claude' -Count 10
-                Types:
-                    -Entity [EdgeGrammar.Modules.Dto.EntityEnum]
-                    -Count  [int]
-            Discoverables:
-                EntityEnum: discover_edge_grammar Entity
-            Error:
-                Valid Entity values are Discoverables.EntityEnum
-                Count must be greater than 0
-        """)]
+        ### get_memories
+
+        > Gets memories for a given entity, bounded by a maximum record count.
+
+        - **Parameters**
+            - `string` **entity** - An `EntityEnum` string value (case-insensitive).
+            - `int` **count** - The maximum number of memory records to return.
+        - **Returns**
+            - `json` - A serialized JSON memories array.
+        - **Throws**
+            - Valid entity values:
+                - Architect
+                - Gemini
+                - Claude
+                - Grok
+                - GPT
+                - Human
+                - Self
+                - System
+                - Agent
+                - Codex
+                - Qwen
+            - count must be greater than 0.
+    """)]
     public string GetMemories(string entity, int count) => !Enum.TryParse<EntityEnum>(entity, ignoreCase: true, out EntityEnum e)
             ? SE($"Valid Entity values: {GEEV()}")
             : count <= 0 ? SE("Count must be greater than 0") : this.GetMemoriesInternal(e, count);
@@ -39,19 +51,7 @@ public class EdgeGrammarMcp
 
     [McpServerTool]
     [Description("""
-            Powershell:
-                Example:
-                    Get-MemoriesByWork -Entity 'Claude' -Count 10 -Work 'SharpeX'
-                Types:
-                    -Entity [EdgeGrammar.Modules.Dto.EntityEnum]
-                    -Count  [int]
-                    -Work   [EdgeGrammar.Modules.Dto.WorkEnum]
-            Discoverables:
-                EntityEnum: discover_edge_grammar Entity
-                WorkEnum:   discover_edge_grammar Work
-            Error:
-                Valid Entity values are Discoverables.EntityEnum
-                Valid Work values are Discoverables.WorkEnum
+
         """)]
     public string GetMemoriesByWork(string entity, int count, string work) => !Enum.TryParse<EntityEnum>(entity, ignoreCase: true, out EntityEnum e)
             ? SE($"Valid Entity values: {GEEV()}")
@@ -63,19 +63,7 @@ public class EdgeGrammarMcp
 
     [McpServerTool]
     [Description("""
-            Powershell:
-                Example:
-                    Get-MemoriesByRelation -Entity 'Claude' -Count 10 -Relation 'Delivers'
-                Types:
-                    -Entity   [EdgeGrammar.Modules.Dto.EntityEnum]
-                    -Count    [int]
-                    -Relation [EdgeGrammar.Modules.Dto.RelationEnum]
-            Discoverables:
-                EntityEnum:   discover_edge_grammar Entity
-                RelationEnum: discover_edge_grammar Relation
-            Error:
-                Valid Entity values are Discoverables.EntityEnum
-                Valid Relation values are Discoverables.RelationEnum
+
         """)]
     public string GetMemoriesByRelation(string entity, int count, string relation)
     {
@@ -87,22 +75,7 @@ public class EdgeGrammarMcp
 
     [McpServerTool]
     [Description("""
-            Powershell:
-                Example:
-                    Get-MemoriesByWorkAndRelation -Entity 'Claude' -Count 10 -Work 'SharpeX' -Relation 'Delivers'
-                Types:
-                    -Entity   [EdgeGrammar.Modules.Dto.EntityEnum]
-                    -Count    [int]
-                    -Work     [EdgeGrammar.Modules.Dto.WorkEnum]
-                    -Relation [EdgeGrammar.Modules.Dto.RelationEnum]
-            Discoverables:
-                EntityEnum:   discover_edge_grammar Entity
-                WorkEnum:     discover_edge_grammar Work
-                RelationEnum: discover_edge_grammar Relation
-            Error:
-                Valid Entity values are Discoverables.EntityEnum
-                Valid Work values are Discoverables.WorkEnum
-                Valid Relation values are Discoverables.RelationEnum
+
         """)]
     public string GetMemoriesByWorkAndRelation(string entity, int count, string work, string relation) => !Enum.TryParse<EntityEnum>(entity, ignoreCase: true, out EntityEnum e)
             ? SE($"Valid Entity values: {GEEV()}")
@@ -118,25 +91,7 @@ public class EdgeGrammarMcp
 
     [McpServerTool]
     [Description("""
-            Powershell:
-                Example:
-                    New-Memory -Entity 'Claude' -Work 'SharpeX' -ToEntity 'Architect' -Relation 'Delivers' -Notes 'Implemented ISxController'
-                Types:
-                    -Entity   [EdgeGrammar.Modules.Dto.EntityEnum]
-                    -Work     [EdgeGrammar.Modules.Dto.WorkEnum]
-                    -ToEntity [EdgeGrammar.Modules.Dto.EntityEnum]
-                    -Relation [EdgeGrammar.Modules.Dto.RelationEnum]
-                    -Notes    [string]
-            Edge.Work = entity Work. Both entities share the same work domain.
-            Discoverables:
-                EntityEnum:   discover_edge_grammar Entity
-                WorkEnum:     discover_edge_grammar Work
-                RelationEnum: discover_edge_grammar Relation
-            Error:
-                Valid Entity/ToEntity values are Discoverables.EntityEnum
-                Valid Work values are Discoverables.WorkEnum
-                Valid Relation values are Discoverables.RelationEnum
-                Notes must not be empty
+
         """)]
     public string NewMemory(string entity, string work, string toEntity, string relation, string notes)
     {
@@ -149,30 +104,9 @@ public class EdgeGrammarMcp
 
     [McpServerTool]
     [Description("""
-            Powershell:
-                Example:
-                    New-MemoryWithToEntityWork -Entity 'Claude' -Work 'SharpeX' -ToEntity 'Architect' -ToEntityWork 'Security' -Relation 'Delivers' -Notes 'Implemented ISxController'
-                Types:
-                    -Entity       [EdgeGrammar.Modules.Dto.EntityEnum]
-                    -Work         [EdgeGrammar.Modules.Dto.WorkEnum]
-                    -ToEntity     [EdgeGrammar.Modules.Dto.EntityEnum]
-                    -ToEntityWork [EdgeGrammar.Modules.Dto.WorkEnum]
-                    -Relation     [EdgeGrammar.Modules.Dto.RelationEnum]
-                    -Notes        [string]
-            Edge.Work = ToEntityWork. Entities operate in different work domains.
-            Discoverables:
-                EntityEnum:   discover_edge_grammar Entity
-                WorkEnum:     discover_edge_grammar Work
-                RelationEnum: discover_edge_grammar Relation
-            Error:
-                Valid Entity/ToEntity values are Discoverables.EntityEnum
-                Valid Work/ToEntityWork values are Discoverables.WorkEnum
-                Valid Relation values are Discoverables.RelationEnum
-                Notes must not be empty
+
         """)]
-    public string NewMemoryWithToEntityWork(string entity, string work, string toEntity, string toEntityWork, string relation, string notes)
-    {
-        return !Enum.TryParse<EntityEnum>(entity, ignoreCase: true, out var e)
+    public string NewMemoryWithToEntityWork(string entity, string work, string toEntity, string toEntityWork, string relation, string notes) => !Enum.TryParse<EntityEnum>(entity, ignoreCase: true, out var e)
             ? SE($"Valid Entity values: {GEEV()}")
             : !Enum.TryParse<WorkEnum>(work, ignoreCase: true, out var w)
             ? SE($"Valid Work values: {GWEV()}")
@@ -183,69 +117,37 @@ public class EdgeGrammarMcp
             : !Enum.TryParse<RelationEnum>(relation, ignoreCase: true, out var r)
             ? SE($"Valid Relation values: {GREV()}")
             : this.SaveMemory(e, w, te, tew, r, notes);
-    }
 
     // ── NewCollab ─────────────────────────────────────────────────────────────
 
     [McpServerTool]
     [Description("""
-            Powershell:
-                Example:
-                    New-Collab -Entity 'Claude' -Work 'SharpeX' -ToEntity 'Architect' -ToEntityWork 'Security' -Notes 'Proposing ISxController pattern'
-                Types:
-                    -Entity       [EdgeGrammar.Modules.Dto.EntityEnum]
-                    -Work         [EdgeGrammar.Modules.Dto.WorkEnum]
-                    -ToEntity     [EdgeGrammar.Modules.Dto.EntityEnum]
-                    -ToEntityWork [EdgeGrammar.Modules.Dto.WorkEnum]
-                    -Notes        [string]
-            Edge.Relation is fixed to Collaborates — not a parameter.
-            AgentMemoryDto.Work = entity work domain. Edge.Work = toEntity work domain.
-            Discoverables:
-                EntityEnum: discover_edge_grammar Entity
-                WorkEnum:   discover_edge_grammar Work
-            Error:
-                Valid Entity/ToEntity values are Discoverables.EntityEnum
-                Valid Work/ToEntityWork values are Discoverables.WorkEnum
-                Notes must not be empty
+
         """)]
     public string NewCollab(string entity, string work, string toEntity, string toEntityWork, string notes)
     {
-        if (!Enum.TryParse<EntityEnum>(entity, ignoreCase: true, out var e)) { return SE($"Valid Entity values: {GEEV()}"); }
-        if (!Enum.TryParse<WorkEnum>(work, ignoreCase: true, out var w)) { return SE($"Valid Work values: {GWEV()}"); }
-        if (!Enum.TryParse<EntityEnum>(toEntity, ignoreCase: true, out var te)) { return SE($"Valid ToEntity values: {GEEV()}"); }
-        if (!Enum.TryParse<WorkEnum>(toEntityWork, ignoreCase: true, out var tew)) { return SE($"Valid ToEntityWork values: {GWEV()}"); }
-        return this.SaveMemory(e, w, te, tew, RelationEnum.Collaborates, notes);
+        return !Enum.TryParse<EntityEnum>(entity, ignoreCase: true, out var e)
+            ? SE($"Valid Entity values: {GEEV()}")
+            : !Enum.TryParse<WorkEnum>(work, ignoreCase: true, out var w)
+            ? SE($"Valid Work values: {GWEV()}")
+            : !Enum.TryParse<EntityEnum>(toEntity, ignoreCase: true, out var te)
+            ? SE($"Valid ToEntity values: {GEEV()}")
+            : !Enum.TryParse<WorkEnum>(toEntityWork, ignoreCase: true, out var tew)
+            ? SE($"Valid ToEntityWork values: {GWEV()}")
+            : this.SaveMemory(e, w, te, tew, RelationEnum.Collaborates, notes);
     }
 
     // ── GetCollabs ────────────────────────────────────────────────────────────
 
     [McpServerTool]
     [Description("""
-            Powershell:
-                Example:
-                    Get-Collabs -Count 5
-                Types:
-                    -Count [int]
-            Returns all Collaborates edges across all entities, sorted newest-first.
-            Error:
-                Count must be greater than 0
+
         """)]
     public string GetCollabs(int count) => count <= 0 ? SE("Count must be greater than 0") : this.GetCollabsInternal(count);
 
     [McpServerTool]
     [Description("""
-            Powershell:
-                Example:
-                    Get-CollabsByWork -Count 5 -Work 'SharpeX'
-                Types:
-                    -Count [int]
-                    -Work  [EdgeGrammar.Modules.Dto.WorkEnum]
-            Returns Collaborates edges where AgentMemoryDto.Work OR Edge.Work matches.
-            Discoverables:
-                WorkEnum: discover_edge_grammar Work
-            Error:
-                Count must be greater than 0
-                Valid Work values are Discoverables.WorkEnum
+
         """)]
     public string GetCollabsByWork(int count, string work) => count <= 0
             ? SE("Count must be greater than 0")
