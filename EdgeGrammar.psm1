@@ -11,7 +11,7 @@ if (-not (Get-PSDrive -Name 'EdgeGrammar' -ErrorAction SilentlyContinue)) {
         -Description 'A drive for storing edge grammar configurations, memories, and tools' `
         -Scope Global)
 }
-$Global:EdgeGrammarDll = Join-Path -Path "$PSScriptRoot" -ChildPath 'bin\Debug\net9.0\EdgeGrammar.dll'
+$Global:EdgeGrammarDll = Join-Path -Path "$PSScriptRoot" -ChildPath 'bin\Debug\net10.0\win-x64\EdgeGrammar.dll'
 
 # Load the EdgeGrammar assembly before importing nested modules so that
 # typed DTO parameters are available when AgentMemory.psm1 functions are called.

@@ -6,16 +6,21 @@ namespace EdgeGrammar.Modules.Dto;
 
 public enum WorkEnum
 {
+    PowerNixxServer,
     SystemPrompt,
+    Npm,
     Pester,
     Devops,
     Infrastructure,
     DataPlane,
     ModelContextProtocol,
     Security,
+    Reactor,
     MarkdownChat,
+    AgentMemory,
     Research,
     Plan,
+    Fragment,
     Frontend,
     Troubleshoot,
     GloriousFailure,
@@ -24,6 +29,7 @@ public enum WorkEnum
     CMMCPower,
     CMMCPowerLearn,
     EdgeGrammar,
-    Approval
+    Approval,
+    Collab
 }
 
