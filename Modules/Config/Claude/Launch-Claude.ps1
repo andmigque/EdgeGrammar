@@ -1,7 +1,8 @@
 $systemPromptFile   = Join-Path -Path "$PSScriptRoot" -ChildPath "..\SYSTEM.md"
 $edgeGrammarModule = Join-Path -Path "$PSScriptRoot" -ChildPath "..\..\..\EdgeGrammar.psm1"
 Import-Module $edgeGrammarModule
-$contextOutput = Get-MemoryContext -Entities @('Claude','Architect') -Count 10
+
+$contextOutput = Get-MemoryContext -Entities @('Architect','Claude') -Count 3
 
 $dynamicSystemPrompt = @"
 ---
