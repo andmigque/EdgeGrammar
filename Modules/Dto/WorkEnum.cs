@@ -23,6 +23,7 @@ public enum WorkEnum
     SharpeX,
     CMMCPower,
     CMMCPowerLearn,
-    EdgeGrammar
+    EdgeGrammar,
+    Approval
 }
 
