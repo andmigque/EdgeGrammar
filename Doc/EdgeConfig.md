@@ -1,11 +1,27 @@
 # EdgeGrammarConfig
 
-> Derives all runtime paths from an `EdgeGrammarConfigDto`. The single resolution point for every hardcoded path in the system.
+> Derives runtime paths from an `EdgeConfigDto` loaded from `EdgeConfig.json`.
 
 - Instance class — not static. Preserves DI scalability.
+- `EdgeConfig.json` is the source of truth for portable path literals.
+- `~` roots are expanded before path composition.
 - `AccountJsonPath` is intentionally absent — resolved via `EDGE_GRAMMAR_ACCOUNT_JSON` environment variable.
 
 ## Methods
+### FromJsonFile
+
+> Loads `EdgeConfig.json` and returns an `EdgeConfig` resolver.
+
+```csharp
+public static EdgeConfig FromJsonFile(string configPath)
+```
+
+- **Parameters**
+  - `string` **configPath** - The path to `EdgeConfig.json`.
+- **Returns**
+  - `EdgeConfig` - A resolver backed by the parsed config file.
+- **Exceptions**
+  - `InvalidOperationException` - Thrown if the config file cannot be parsed.
 ### EdgeGrammarDllPath
 
 > Returns the absolute path to the compiled EdgeGrammar DLL.
@@ -135,6 +151,7 @@ public string CodexConfigPath()
 
 ```csharp
 using EdgeGrammar.Modules.Dto;
+using System.Text.Json;
 ```
 
 ## Namespace
