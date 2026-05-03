@@ -63,7 +63,7 @@ The following metrics represent a benchmark session demonstrating the high-preci
 ## 💎 SharpDown
 
 This repository uses **SharpDown**—a documentation standard that replaces bloated XML comments with high-signal Markdown directly in the C# source.
-- **Human Readable**: Source code is the documentation.
+- **Easy on thr Eyes**: Well written markdown makes agents and humans happy.
 - **Agent Optimized**: Documentation is indexed in each of the agent project files for always up to date context.
 - **Auto-Generated**: The `./Doc` folder is a living reflection of the current codebase state.
 
