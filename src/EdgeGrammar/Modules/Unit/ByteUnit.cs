@@ -1,9 +1,69 @@
+/// # ByteUnit
+///
+/// > Utility class for byte unit conversions and percentage calculations.
+///
+/// - Module utility for transforming data, not a boundary-crossing DTO.
+/// - Supports conversions from bytes up to Petabytes.
+/// - Provides both `long` and `double` precision conversion methods.
+///
+/// ## Methods
+///
+/// ### ConvertFromBytes
+///
+/// > Converts bytes to the largest appropriate unit with human-readable integer value.
+///
+/// ```csharp
+/// public (long Value, ResourceUnit Unit) ConvertFromBytes(long bytes)
+/// ```
+///
+/// - **Parameters**
+///   - `long` **bytes** - The raw byte count to convert.
+/// - **Returns**
+///   - `(long, ResourceUnit)` - A tuple containing the converted value and the corresponding `ResourceUnit`.
+///
+/// ### ConvertFromBytesDouble
+///
+/// > Converts bytes to the largest appropriate unit with double-precision decimal value.
+///
+/// ```csharp
+/// public (double Value, ResourceUnit Unit) ConvertFromBytesDouble(long bytes)
+/// ```
+///
+/// - **Parameters**
+///   - `long` **bytes** - The raw byte count to convert.
+/// - **Returns**
+///   - `(double, ResourceUnit)` - A tuple containing the converted decimal value and the corresponding `ResourceUnit`.
+///
+/// ### CalculatePercent
+///
+/// > Calculates the percentage of a numerator relative to a denominator with specified precision.
+///
+/// ```csharp
+/// public double CalculatePercent(long numerator, long denominator, int precision = 2)
+/// ```
+///
+/// - **Parameters**
+///   - `long` **numerator** - The partial value.
+///   - `long` **denominator** - The total value (must not be zero).
+///   - `int` **precision** - The number of decimal places to round to (default: 2).
+/// - **Returns**
+///   - `double` - The calculated percentage.
+/// - **Exceptions**
+///   - `ArgumentException` - Thrown when the denominator is zero.
+///
+/// ## Namespace
+///
+/// ```csharp
+/// EdgeGrammar.Modules.Unit
+/// ```
+///
+/// ## Definition
+///
+/// ```csharp
+/// public class ByteUnit
+/// ```
 namespace EdgeGrammar.Modules.Unit;
 
-/// <summary>
-/// Utility class for byte unit conversions and percentage calculations.
-/// Module utility for transforming data, not boundary-crossing DTO.
-/// </summary>
 public class ByteUnit
 {
     private const long KB = 1024;
@@ -14,11 +74,6 @@ public class ByteUnit
 
     public ByteUnit() { }
 
-    /// <summary>
-    /// Converts bytes to appropriate unit with human-readable value.
-    /// </summary>
-    /// <param name="bytes">Raw byte count</param>
-    /// <returns>Tuple of (Value, Unit) where Value is converted and Unit is ResourceUnit</returns>
     public (long Value, ResourceUnit Unit) ConvertFromBytes(long bytes)
     {
         if (bytes >= PB) return (bytes / PB, ResourceUnit.PB);
@@ -29,11 +84,6 @@ public class ByteUnit
         return (bytes, ResourceUnit.B);
     }
 
-    /// <summary>
-    /// Converts bytes to appropriate unit with human-readable value (double precision).
-    /// </summary>
-    /// <param name="bytes">Raw byte count</param>
-    /// <returns>Tuple of (Value, Unit) where Value is converted and Unit is ResourceUnit</returns>
     public (double Value, ResourceUnit Unit) ConvertFromBytesDouble(long bytes)
     {
         if (bytes >= PB) return ((double)bytes / PB, ResourceUnit.PB);
@@ -44,14 +94,6 @@ public class ByteUnit
         return (bytes, ResourceUnit.B);
     }
 
-    /// <summary>
-    /// Calculates percentage with specified precision.
-    /// </summary>
-    /// <param name="numerator">Partial value</param>
-    /// <param name="denominator">Total value</param>
-    /// <param name="precision">Decimal places (default: 2)</param>
-    /// <returns>Percentage as double</returns>
-    /// <exception cref="ArgumentException">Thrown when denominator is zero</exception>
     public double CalculatePercent(long numerator, long denominator, int precision = 2)
     {
         if (denominator == 0)

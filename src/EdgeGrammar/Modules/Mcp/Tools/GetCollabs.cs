@@ -71,9 +71,22 @@ public partial class EdgeGrammarMcp
     //public string GetCollabsByWork(int count, string work) => count <= 0
     //        ? SerializerError("Count must be greater than 0")
     //        : !Enum.TryParse<WorkEnum>(work, ignoreCase: true, out WorkEnum w)
-    //        ? SerializerError($"Valid Work values: {GetWorkEnumValues()}")
+    //        ? SerializerError($"Valid Work values: {GetWorkValues()}")
     //        : this.GetCollabsInternal(count, w);
 
+    /// ### GetCollabsInternal
+    ///
+    /// > Internal scanner that aggregates collaboration memories across all entity directories.
+    ///
+    /// ```csharp
+    /// private string GetCollabsInternal(int count)
+    /// ```
+    ///
+    /// - **Parameters**
+    ///   - `int` **count** - The maximum number of collaboration memory records to return.
+    /// - **Returns**
+    ///   - `string` - A serialized JSON memories array where the edge relation is `Collaborates`.
+    ///
     private string GetCollabsInternal(int count)
     {
         if (!Directory.Exists(MemoryRoot())) { return SerializerError("Memory root not found"); }

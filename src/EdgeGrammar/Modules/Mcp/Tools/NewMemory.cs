@@ -6,6 +6,23 @@ namespace EdgeGrammar.Modules.Mcp;
 
 public partial class EdgeGrammarMcp
 {
+    /// ### NewMemory
+    ///
+    /// > Creates a memory with a typed entity, work domain, target entity, relation, and notes.
+    ///
+    /// ```csharp
+    /// public string NewMemory(string entity, string work, string toEntity, string relation, string notes)
+    /// ```
+    ///
+    /// - **Parameters**
+    ///   - `string` **entity** - An `EntityEnum` string value for the memory author (case-insensitive).
+    ///   - `string` **work** - A `WorkEnum` string value for the memory and edge work domain (case-insensitive).
+    ///   - `string` **toEntity** - An `EntityEnum` string value for the edge target (case-insensitive).
+    ///   - `string` **relation** - A `RelationEnum` string value for the edge relation (case-insensitive).
+    ///   - `string` **notes** - The memory notes to persist.
+    /// - **Returns**
+    ///   - `string` - The created memory file name, or a serialized JSON error object.
+    ///
     [McpServerTool]
     [Description("""
         ### new_memory

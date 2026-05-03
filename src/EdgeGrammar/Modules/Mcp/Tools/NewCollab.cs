@@ -7,6 +7,14 @@ public partial class EdgeGrammarMcp
     // ── NewCollab ─────────────────────────────────────────────────────────────
     // Not yet active. Relation is hardcoded to Collaborates — no relation param.
 
+    /// ### NewCollab (Inactive)
+    ///
+    /// > Creates a collaboration memory between two typed entities and work domains.
+    ///
+    /// ```csharp
+    /// // public string NewCollab(string entity, string work, string toEntity, string toEntityWork, string notes)
+    /// ```
+    ///
     //[McpServerTool]
     //[Description("""
     //    ### new_collab
@@ -63,12 +71,12 @@ public partial class EdgeGrammarMcp
     //        - notes must not be empty.
     //""")]
     //public string NewCollab(string entity, string work, string toEntity, string toEntityWork, string notes) => !Enum.TryParse<EntityEnum>(entity, ignoreCase: true, out var e)
-    //        ? SerializerError($"Valid Entity values: {GetEntityEnumValues()}")
+    //        ? SerializerError($"Valid Entity values: {GetEntityValues()}")
     //        : !Enum.TryParse<WorkEnum>(work, ignoreCase: true, out var w)
-    //        ? SerializerError($"Valid Work values: {GetWorkEnumValues()}")
+    //        ? SerializerError($"Valid Work values: {GetWorkValues()}")
     //        : !Enum.TryParse<EntityEnum>(toEntity, ignoreCase: true, out var te)
-    //        ? SerializerError($"Valid ToEntity values: {GetEntityEnumValues()}")
+    //        ? SerializerError($"Valid ToEntity values: {GetEntityValues()}")
     //        : !Enum.TryParse<WorkEnum>(toEntityWork, ignoreCase: true, out var tew)
-    //        ? SerializerError($"Valid ToEntityWork values: {GetWorkEnumValues()}")
+    //        ? SerializerError($"Valid ToEntityWork values: {GetWorkValues()}")
     //        : this.SaveMemory(e, w, te, tew, RelationEnum.Collaborates, notes);
 }
