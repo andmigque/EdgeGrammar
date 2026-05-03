@@ -1,144 +1,156 @@
-# Edge Grammar
+# EdgeGrammar
 
-EdgeGrammar is a memory system for Agentic workloads. It captures the intent of entities with agency as a work, relation, summary graph.
+> **The Agentic Data Plane.** A high-performance, graph-based memory ecosystem designed for LLM agents to observe, remember, and reason across work domains.
 
-## Build and Test
+---
+
+## 🏗️ Architecture
+
+EdgeGrammar is a **.NET 10** core system that operates as a **Model Context Protocol (MCP)** server. It provides a standardized interface for agents (Claude, Gemini, Codex.) to persist their logic, successes, and relationships into a hybrid storage layer (Local JSONL + Google Cloud Firestore).
+
+```mermaid
+mindmap
+((Aspects))
+  Iteration
+    SharpDown
+  Coordination
+    EdgeGrammarMcp
+    ClaudeGeminiCodex
+    AgentCollaboratesArchitect
+  Agency
+    IterativePlanning
+    CautiousExecution
+  Governance
+    EntitiesWithAgency
+  Resilience
+    Backup
+    Hash
+    Encrypt
+  Adaptation
+    GloriousFailure
+    ConfigCore
+    Platform
+```
+
+### The Graph Model
+
+At the heart of the system is a semantic graph:
+- **Entities**: The actors (Agents, Humans, Systems).
+- **Edges**: The relationships (Depends, Creates, Fixes, Analyzes).
+- **Work Domains**: The context (DevOps, Infrastructure, DataPlane, AI).
+
+## 📊 Success Statistics
+
+The following metrics represent a benchmark session demonstrating the high-precision efficiency of the EdgeGrammar agentic workflow:
+
+| Metric | Value |
+| :--- | :--- |
+| **Tool Calls** | 83 (79 Success / 4 Fail) |
+| **Success Rate** | **95.2%** |
+| **User Agreement** | **98.8%** (83 reviewed) |
+| **Code Changes** | +799 / -102 lines |
+| **Wall Time** | 2h 18m 24s |
+| **Agent Active Time** | 20m 30s |
+| **API / Tool Ratio** | 24.1% API / 75.9% Tool |
+
+### Model Performance (gemini-3-flash-preview)
+| Context | Reqs | Input Tokens | Cache Reads | Output Tokens |
+| :--- | :--- | :--- | :--- | :--- |
+| **Main** | 106 | 4,217,383 | 3,632,979 | 21,458 |
+| **Utility** | 2 | 12,116 | 7,964 | 1,947 |
+| **Total** | **108** | **4,229,499** | **3,640,943** | **23,405** |
+
+## 💎 SharpDown
+
+This repository uses **SharpDown**—a documentation standard that replaces bloated XML comments with high-signal Markdown directly in the C# source.
+- **Human Readable**: Source code is the documentation.
+- **Agent Optimized**: Documentation is indexed in each of the agent project files for always up to date context.
+- **Auto-Generated**: The `./Doc` folder is a living reflection of the current codebase state.
+
+## 🚀 Key Features
+
+- **EdgeGrammarMCP**: Boundary-crossing tools that allow agents to read and write memories in real-time.
+- **Firestore Migration**: Only currently supports `NewFireMemory`. Migration from filesystem only persistence is in progress.
+- **Unit System**: High-precision .NET Ticks `TickStamp` management and resource normalization.
+- **Config Core**: A single resolution point for machine-specific pathing and environment anchors.
+
+![Firestore](./Image/Firebase.jpg)
+
+## 🧭 Navigation
+
+- **[GEMINI.md, CLAUDE.md, AGENTS.md](./GEMINI.md)**: The **Command Center**. If you are an agent, start here to synchronize your context with the latest module definitions.
+- **[Doc/](./Doc/)**: The generated documentation library.
+- **[Modules/](./Modules/)**: The legacy and support logic that holds the PowerShell and configuration roots together.
+
+## 🛠️ Build and Test
+
+EdgeGrammar uses both **dotnet** and **psake** for task automation. Ensure you have the required modules installed:
+
+```csharp
+dotnet build ; dotnet test ; dotnet build -c Release
+```
 
 ```powershell
 # Full pipeline: install dependencies, compile, test, generate docs
 Invoke-psake
 
 # Individual tasks
-Invoke-psake -taskList Install   # installs Pester, platyPS, PSScriptAnalyzer, Psake
-Invoke-psake -taskList Compile   # dotnet restore + dotnet build -> bin/Debug/net9.0/EdgeGrammar.dll
-Invoke-psake -taskList Test      # Invoke-Pester -Output Minimal
-Invoke-psake -taskList Document  # platyPS -> Doc/
+Invoke-psake -taskList Install   # Installs Pester, platyPS, PSScriptAnalyzer, Psake
+Invoke-psake -taskList Compile   # .NET restore + build -> bin/Debug/net10.0/EdgeGrammar.dll
+Invoke-psake -taskList Test      # Runs Pester tests
+Invoke-psake -taskList Document  # Generates SharpDown/platyPS docs
 ```
+---
 
-Run a single test file directly:
+## EdgeGrammar Command Center
 
-```powershell
-Invoke-Pester .\Modules\AgentMemory\AgentMemory.Tests.ps1 -Output Detailed
-```
+> The source-of-truth index for the EdgeGrammar project. These instructions are linked to the Sharpdown-generated documentation in the `./Doc` folder.
+
+## 📦 Data Transfer Objects (DTOs)
+- [AgentMemoryDto](./Doc/AgentMemoryDto.md) (Deprecated)
+- [AgentMemoryFirestoreDto](./Doc/AgentMemoryFirestoreDto.md)
+- [EdgeConfigDto](./Doc/EdgeConfigDto.md)
+- [EdgeDto](./Doc/EdgeDto.md)
+
+## 🔢 Enumerations
+- [EntityEnum](./Doc/EntityEnum.md)
+- [RelationEnum](./Doc/RelationEnum.md)
+- [WorkEnum](./Doc/WorkEnum.md)
+- [ResourceUnit](./Doc/ResourceUnit.md)
+
+## 🛠️ MCP Tools
+- [EdgeGrammarMcp Host](./Doc/EdgeGrammarMcp.md)
+- [NewMemory](./Doc/NewMemory.md)
+- [NewFireMemory](./Doc/NewFireMemory.md)
+- [NewMemoryWithToEntityWork](./Doc/NewMemoryWithToEntityWork.md)
+- [GetMemories](./Doc/GetMemories.md)
+- [GetMemoriesByRelation](./Doc/GetMemoriesByRelation.md)
+- [GetMemoriesByWork](./Doc/GetMemoriesByWork.md)
+- [GetMemoriesByWorkAndRelation](./Doc/GetMemoriesByWorkAndRelation.md)
+- [GetCollabs](./Doc/GetCollabs.md)
+- [NewCollab](./Doc/NewCollab.md) (Inactive)
+
+## 🧮 Utility Units
+- [ByteUnit](./Doc/ByteUnit.md)
+- [TickstampUnit](./Doc/TickstampUnit.md)
+
+## 🔌 System Infrastructure
+- [EdgeConfig](./Doc/EdgeConfig.md)
+- [FirestoreClient](./Doc/FirestoreClient.md)
+
+## 🧪 Legacy Memory Tools (PowerShell)
+- [Get-MemoryByEntity](./Doc/Get-MemoryByEntity.md)
+- [Get-MemoryContext](./Doc/Get-MemoryContext.md)
+- [Get-MemorySummary](./Doc/Get-MemorySummary.md)
+- [Get-MemoryWorkDistribution](./Doc/Get-MemoryWorkDistribution.md)
+- [Measure-MemoryRelation](./Doc/Measure-MemoryRelation.md)
+- [Measure-MemoryStatistic](./Doc/Measure-MemoryStatistic.md)
+- [Search-Memory](./Doc/Search-Memory.md)
+- [New-Memory](./Doc/New-Memory.md)
 
 ---
 
-## Architecture
-
-EdgeGrammar is a two-layer system: a .NET class library that defines the type model, and a PowerShell module that exposes the API.
-
-### Layer 1 — .NET class library (`net9.0`)
-
-All types live under `Modules/Dto/` and `Modules/Unit/`:
-
-| Type | Role |
-|------|------|
-| `AgentMemoryDto` | A single memory record: entity, work domain, notes, optional edge |
-| `EdgeDto` | A typed relationship between two entities, scoped to a work domain |
-| `EntityEnum` | Who authored or is referenced: `Claude`, `Architect`, `Gemini`, … |
-| `WorkEnum` | What effort the memory belongs to: `AgentMemory`, `Security`, `GloriousFailure`, … |
-| `RelationEnum` | Why two entities are linked: `Delivers`, `Fixes`, `Collaborates`, … |
-| `TickStampUnit` | Tick-based timestamp utility; used for file naming and UTC conversion |
-
-Compiled output: `bin/Debug/net9.0/EdgeGrammar.dll`
-
-### Layer 2 — PowerShell module (`EdgeGrammar.psm1`)
-
-The root module (`EdgeGrammar.psm1`) does three things on import:
-
-1. Registers the `EdgeGrammar:` PSDrive → `~/EdgeGrammar/` (all storage goes here)
-2. Sets `$Global:EdgeGrammarDll` to the DLL path
-3. Loads the DLL once via `Add-Type`, then imports nested modules
-
-**Nested modules** (declared in `EdgeGrammar.psd1 > NestedModules`):
-
-| Module | File | Purpose |
-|--------|------|---------|
-| AgentMemory | `Modules/AgentMemory/AgentMemory.psm1` | Read/write JSONL memory records |
-| Config | `Modules/Config/Config.psm1` | Restore agent config on a new machine |
-
-### Storage layout under `EdgeGrammar:`
-
-```
-~/EdgeGrammar/
-  agentmemory/
-    Claude/         # one JSONL file per memory record
-    Architect/
-    ...
-  tool/             # one JSON file per PostToolUse hook invocation
-```
-
-Files are named `<ticks>.jsonl` or `<ticks>_<toolname>.json`; tick-based names sort by write time for free.
-
----
-
-## Module Conventions
-
-Every exported function must follow these patterns exactly — no exceptions.
-
-### `Out-Error` helper (private, one per module)
-
-```powershell
-function Out-Error {
-    [CmdletBinding()]
-    param([string]$CallerName)
-    throw "$CallerName -> Could not Add-Type. Please Import-Module EdgeGrammar.psm1 and try again"
-}
-```
-
-### `Add-Type` guard (first statement in every exported function)
-
-```powershell
-try {
-    Add-Type -Path $Global:EdgeGrammarDll
-}
-catch {
-    Out-Error -CallerName $MyInvocation.MyCommand.Name
-}
-```
-
-Never write the catch body inline. Never skip the guard. Never call `Add-Type` without it.
-
-### Block formatting
-
-Every `try`, `catch`, `if`, `foreach`, `while` — all block constructs — must use multi-line braces. No single-line blocks.
-
-### Path rules
-
-```powershell
-# One segment per Join-Path argument
-Join-Path $PSScriptRoot $Entity.ToString() 'agent-config.json'
-
-# Walk up with Split-Path -Parent, not ..
-$repoRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
-
-# Plain string from path: Convert-Path, not Resolve-Path | Select-Object
-Convert-Path $somePath
-```
-
----
-
-## Config and New Machine Restore
-
-`Modules/Config/Claude/agent-config.json` is the canonical desired state for the Claude agent.
-
-To restore a new machine:
-
-```powershell
-Import-Module .\EdgeGrammar.psm1
-Sync-AgentConfig -Entity Claude
-```
-
-This copies `Modules/Config/Hooks/*.ps1` to `~/.claude/`, merges permissions into `~/.claude/settings.json`, resolves the `{ClaudeHome}` token in hook commands, enables plugins, and creates the `EdgeGrammar:\agentmemory\Claude` directory.
-
-**Still pending:** `Sync-AgentConfig` does not yet restore the `desktopcommander` MCP server entry into `~/.claude.json`.
-
----
-
-## Invariants
-
-- **Append-only** — never modify or delete persisted JSONL records
-- **C# DTOs at boundaries** — never use hashtables where a typed DTO is expected
-- **PSDrive required** — all storage paths go through `EdgeGrammar:`, not raw filesystem paths
-- **`Import-Module` is forbidden inside this project** — the root module handles all loading
-- **The DLL must be compiled before the module can be imported** — run `Invoke-psake Compile` first
+### Core Mandates
+- **Documentation**: Always update Sharpdown comments in `.cs` files before closing a task.
+- **Types**: Maintain strict adherence to the DTO and Enum definitions indexed above.
+- **Persistence**: Prefer `NewFireMemory` for all agentic successes.
