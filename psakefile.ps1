@@ -8,8 +8,8 @@ Task Install {
 }
 
 Task Compile {
-    dotnet restore
-    dotnet build
+    dotnet restore EdgeGrammar.sln
+    dotnet build EdgeGrammar.sln
 }
 
 Task Test {
