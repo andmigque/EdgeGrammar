@@ -1,18 +1,74 @@
 using EdgeGrammar.Modules.Dto;
+using System.Text.Json;
 
 namespace EdgeGrammar.Modules.Config;
 
 /// # EdgeGrammarConfig
 ///
-/// > Derives all runtime paths from an `EdgeGrammarConfigDto`. The single resolution point for every hardcoded path in the system.
+/// > Derives runtime paths from an `EdgeConfigDto` loaded from `EdgeConfig.json`.
 ///
 /// - Instance class — not static. Preserves DI scalability.
+/// - `EdgeConfig.json` is the source of truth for portable path literals.
+/// - `~` roots are expanded before path composition.
 /// - `AccountJsonPath` is intentionally absent — resolved via `EDGE_GRAMMAR_ACCOUNT_JSON` environment variable.
 ///
 /// ## Methods
 public class EdgeConfig(EdgeConfigDto dto)
 {
     private readonly EdgeConfigDto _dto = dto;
+
+    private string EdgeGrammarHome => ExpandHome(_dto.EdgeGrammarHome);
+    private string UserHome => ExpandHome(_dto.UserHome);
+
+    /// ### FromJsonFile
+    ///
+    /// > Loads `EdgeConfig.json` and returns an `EdgeConfig` resolver.
+    ///
+    /// ```csharp
+    /// public static EdgeConfig FromJsonFile(string configPath)
+    /// ```
+    ///
+    /// - **Parameters**
+    ///   - `string` **configPath** - The path to `EdgeConfig.json`.
+    /// - **Returns**
+    ///   - `EdgeConfig` - A resolver backed by the parsed config file.
+    /// - **Exceptions**
+    ///   - `InvalidOperationException` - Thrown if the config file cannot be parsed.
+    public static EdgeConfig FromJsonFile(string configPath)
+    {
+        string json = File.ReadAllText(ExpandHome(configPath));
+        EdgeConfigDto dto = JsonSerializer.Deserialize<EdgeConfigDto>(
+            json,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        if (dto is null)
+        {
+            throw new InvalidOperationException($"{nameof(EdgeConfig)} -> Could not parse EdgeConfig.json.");
+        }
+
+        return new EdgeConfig(dto);
+    }
+
+    private static string ExpandHome(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return path;
+        }
+
+        if (path == "~")
+        {
+            return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        }
+
+        if (path.StartsWith("~/") || path.StartsWith("~\\"))
+        {
+            string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            return Path.Combine(home, path[2..]);
+        }
+
+        return path;
+    }
 
     // ── Repo ──────────────────────────────────────────────────────────────────
 
@@ -27,7 +83,14 @@ public class EdgeConfig(EdgeConfigDto dto)
     /// - **Returns**
     ///   - `string` - `EdgeGrammarHome/bin/BuildEnvironment/BuildArchitecture/EdgeGrammar.dll`
     public string EdgeGrammarDllPath() =>
-        Path.Combine(_dto.EdgeGrammarHome, "src", "EdgeGrammar", "bin", _dto.BuildEnvironment, _dto.BuildArchitecture, "EdgeGrammar.dll");
+        Path.Combine(
+            EdgeGrammarHome,
+            _dto.Paths.SourceRoot,
+            _dto.Paths.ProjectName,
+            _dto.Paths.BuildOutputRoot,
+            _dto.BuildEnvironment,
+            _dto.BuildArchitecture,
+            _dto.Paths.AssemblyFileName);
 
     /// ### EdgeGrammarModulesPath
     ///
@@ -40,7 +103,7 @@ public class EdgeConfig(EdgeConfigDto dto)
     /// - **Returns**
     ///   - `string` - `EdgeGrammarHome/Modules`
     public string EdgeGrammarModulesPath() =>
-        Path.Combine(_dto.EdgeGrammarHome, "Modules");
+        Path.Combine(EdgeGrammarHome, _dto.Paths.SourceRoot, _dto.Paths.ProjectName, _dto.Paths.ModulesRoot);
 
     /// ### AgentConfigPath
     ///
@@ -55,7 +118,7 @@ public class EdgeConfig(EdgeConfigDto dto)
     /// - **Returns**
     ///   - `string` - `EdgeGrammarModulesPath()/Config/entity/agent-config.json`
     public string AgentConfigPath(string entity) =>
-        Path.Combine(EdgeGrammarModulesPath(), "Config", entity, "agent-config.json");
+        Path.Combine(EdgeGrammarModulesPath(), _dto.Paths.ConfigModule, entity, _dto.Paths.AgentConfigFileName);
 
     // ── Storage ───────────────────────────────────────────────────────────────
 
@@ -70,7 +133,7 @@ public class EdgeConfig(EdgeConfigDto dto)
     /// - **Returns**
     ///   - `string` - `UserHome/EdgeGrammar/agentmemory`
     public string AgentMemoryStoragePath() =>
-        Path.Combine(_dto.UserHome, "EdgeGrammar", "agentmemory");
+        Path.Combine(UserHome, _dto.Paths.ProjectName, _dto.Paths.AgentMemoryRoot);
 
     /// ### AgentMemoryEntityPath
     ///
@@ -98,7 +161,7 @@ public class EdgeConfig(EdgeConfigDto dto)
     /// - **Returns**
     ///   - `string` - `UserHome/EdgeGrammar/tool`
     public string ToolStoragePath() =>
-        Path.Combine(_dto.UserHome, "EdgeGrammar", "tool");
+        Path.Combine(UserHome, _dto.Paths.ProjectName, _dto.Paths.ToolRoot);
 
     // ── Claude ────────────────────────────────────────────────────────────────
 
@@ -113,7 +176,7 @@ public class EdgeConfig(EdgeConfigDto dto)
     /// - **Returns**
     ///   - `string` - `UserHome/.claude`
     public string ClaudeHome() =>
-        Path.Combine(_dto.UserHome, ".claude");
+        Path.Combine(UserHome, _dto.Paths.ClaudeHome);
 
     /// ### ClaudeJsonPath
     ///
@@ -126,7 +189,7 @@ public class EdgeConfig(EdgeConfigDto dto)
     /// - **Returns**
     ///   - `string` - `UserHome/.claude.json`
     public string ClaudeJsonPath() =>
-        Path.Combine(_dto.UserHome, ".claude.json");
+        Path.Combine(UserHome, _dto.Paths.ClaudeJsonFile);
 
     // ── Gemini ────────────────────────────────────────────────────────────────
 
@@ -141,7 +204,7 @@ public class EdgeConfig(EdgeConfigDto dto)
     /// - **Returns**
     ///   - `string` - `UserHome/.gemini`
     public string GeminiHome() =>
-        Path.Combine(_dto.UserHome, ".gemini");
+        Path.Combine(UserHome, _dto.Paths.GeminiHome);
 
     /// ### GeminiSettingsPath
     ///
@@ -154,7 +217,7 @@ public class EdgeConfig(EdgeConfigDto dto)
     /// - **Returns**
     ///   - `string` - `GeminiHome()/settings.json`
     public string GeminiSettingsPath() =>
-        Path.Combine(GeminiHome(), "settings.json");
+        Path.Combine(GeminiHome(), _dto.Paths.GeminiSettingsFile);
 
     // ── Codex ─────────────────────────────────────────────────────────────────
 
@@ -169,7 +232,7 @@ public class EdgeConfig(EdgeConfigDto dto)
     /// - **Returns**
     ///   - `string` - `UserHome/.codex`
     public string CodexHome() =>
-        Path.Combine(_dto.UserHome, ".codex");
+        Path.Combine(UserHome, _dto.Paths.CodexHome);
 
     /// ### CodexConfigPath
     ///
@@ -182,5 +245,5 @@ public class EdgeConfig(EdgeConfigDto dto)
     /// - **Returns**
     ///   - `string` - `CodexHome()/config.toml`
     public string CodexConfigPath() =>
-        Path.Combine(CodexHome(), "config.toml");
+        Path.Combine(CodexHome(), _dto.Paths.CodexConfigFile);
 }

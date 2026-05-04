@@ -1,0 +1,25 @@
+{
+  "EdgeGrammarHome": "~/Develop/EdgeGrammar",
+  "UserHome": "~",
+  "BuildEnvironment": "Debug",
+  "BuildArchitecture": "net10.0/win-x64",
+  "FirestoreProjectId": "edgegrammar",
+  "GoogleApiUrl": "https://generativelanguage.googleapis.com",
+  "Paths": {
+    "SourceRoot": "src",
+    "ProjectName": "EdgeGrammar",
+    "BuildOutputRoot": "bin",
+    "AssemblyFileName": "EdgeGrammar.dll",
+    "ModulesRoot": "Modules",
+    "ConfigModule": "Config",
+    "AgentConfigFileName": "agent-config.json",
+    "AgentMemoryRoot": "agentmemory",
+    "ToolRoot": "tool",
+    "ClaudeHome": ".claude",
+    "ClaudeJsonFile": ".claude.json",
+    "GeminiHome": ".gemini",
+    "GeminiSettingsFile": "settings.json",
+    "CodexHome": ".codex",
+    "CodexConfigFile": "config.toml"
+  }
+}
