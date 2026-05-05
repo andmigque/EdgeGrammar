@@ -11,7 +11,7 @@ $ResolveHome = Resolve-Path '~'
 $script:EdgeGrammarHome = Join-Path "$ResolveHome" "Develop" "EdgeGrammar"
 $EdgeGrammarModuleFile = Join-Path "$script:EdgeGrammarHome" "EdgeGrammar.psm1"
 
-Import-Module "$EdgeGrammarModuleFile"
+Import-Module $EdgeGrammarModuleFile
 
 # Set CMMCPowerHome and move there
 
